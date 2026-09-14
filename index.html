@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>アプリ設定ガイド｜株式会社ブライトエフ電気</title>
+<style>
+  :root{
+    --navy:#1b2942; --navy2:#2a3a5c; --gold:#c8a35b; --ivory:#f7f5f0;
+    --ink:#22283a; --muted:#6b7386; --line:#e6e4dd; --card:#ffffff;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--ivory);color:var(--ink);
+    font-family:-apple-system,"Hiragino Kaku Gothic ProN","Meiryo",sans-serif;
+    line-height:1.7;-webkit-text-size-adjust:100%;}
+  .wrap{max-width:520px;margin:0 auto;padding:0 16px 48px;}
+  /* header */
+  header{background:linear-gradient(160deg,var(--navy2),var(--navy));color:#fff;
+    padding:28px 20px 24px;text-align:center;
+    border-bottom:3px solid var(--gold);}
+  header .co{font-size:13px;letter-spacing:.08em;color:#cdd4e4;margin:0 0 6px;}
+  header h1{font-size:22px;margin:0;font-weight:800;}
+  header p{margin:8px 0 0;font-size:13px;color:#cdd4e4;}
+  /* notice */
+  .notice{display:flex;gap:10px;align-items:flex-start;
+    background:#fff7e6;border:1px solid #f0d79a;border-radius:12px;
+    padding:12px 14px;margin:18px 0;font-size:14px;}
+  .notice b{color:#8a6d29;}
+  /* section */
+  h2{font-size:16px;margin:26px 0 12px;padding-left:12px;position:relative;color:var(--navy);}
+  h2::before{content:"";position:absolute;left:0;top:3px;bottom:3px;width:4px;
+    background:var(--gold);border-radius:2px;}
+  .sub{font-size:13px;color:var(--muted);margin:-6px 0 12px;}
+  /* steps */
+  .steps{counter-reset:s;margin:0;padding:0;list-style:none;}
+  .steps li{counter-increment:s;position:relative;background:var(--card);
+    border:1px solid var(--line);border-radius:12px;padding:14px 14px 14px 52px;
+    margin-bottom:10px;font-size:14px;}
+  .steps li::before{content:counter(s);position:absolute;left:12px;top:12px;
+    width:28px;height:28px;border-radius:50%;background:var(--navy);color:#fff;
+    font-weight:700;display:flex;align-items:center;justify-content:center;font-size:14px;}
+  .steps b{color:var(--navy);}
+  .chip{display:inline-block;background:#eef1f6;border-radius:6px;padding:1px 7px;
+    font-size:13px;font-weight:700;color:var(--navy);}
+  /* app buttons */
+  .app{display:flex;align-items:center;gap:14px;background:var(--card);
+    border:1px solid var(--line);border-radius:14px;padding:12px 14px;margin-bottom:10px;
+    text-decoration:none;color:inherit;box-shadow:0 1px 2px rgba(0,0,0,.03);}
+  .app:active{background:#f0f2f7;}
+  .app .ic{width:46px;height:46px;border-radius:11px;flex:0 0 auto;
+    display:flex;align-items:center;justify-content:center;font-size:22px;color:#fff;}
+  .app .tx{flex:1;min-width:0;}
+  .app .tx .nm{font-weight:700;font-size:15px;}
+  .app .tx .ds{font-size:12px;color:var(--muted);}
+  .app .go{color:var(--gold);font-weight:800;font-size:20px;}
+  .ic.meishi{background:linear-gradient(160deg,#2a3a5c,#1b2942);}
+  .ic.gyomu{background:linear-gradient(160deg,#227a68,#0d3d33);}
+  .ic.portal{background:linear-gradient(160deg,#2a3a5c,#131e33);}
+  .ic.kintai{background:linear-gradient(160deg,#346abe,#122e60);}
+  .pick{font-size:12px;color:var(--muted);margin:0 0 8px;}
+  footer{text-align:center;color:var(--muted);font-size:12px;margin-top:30px;}
+</style>
+</head>
+<body>
+  <header>
+    <p class="co">株式会社ブライトエフ電気</p>
+    <h1>スマホ アプリ設定ガイド</h1>
+    <p>ホーム画面に会社アプリを追加しましょう</p>
+  </header>
+
+  <div class="wrap">
+
+    <div class="notice">
+      <span>⚠️</span>
+      <div>このページは必ず <b>Safari（サファリ）</b> で開いてください。<br>
+      （Chromeなど他のブラウザだとホーム画面に追加できません）</div>
+    </div>
+
+    <h2>追加のしかた（共通）</h2>
+    <p class="sub">下のアプリを1つタップ → 開いたら次の3ステップ</p>
+    <ol class="steps">
+      <li>画面下（または上）の<b>共有ボタン</b> <span class="chip">□に↑</span> をタップ</li>
+      <li>メニューから<b>「ホーム画面に追加」</b>を選ぶ</li>
+      <li>右上の<b>「追加」</b>をタップ → 完成！アイコンが自動で付きます🎉</li>
+    </ol>
+    <p class="sub">※ 1つ終わったら、このページに戻って次のアプリも同じように追加してください。</p>
+
+    <h2>みんな共通のアプリ</h2>
+    <a class="app" href="meishi.html">
+      <span class="ic meishi">🎴</span>
+      <span class="tx"><div class="nm">名刺管理</div><div class="ds">名刺の登録・検索・共有</div></span>
+      <span class="go">›</span>
+    </a>
+    <a class="app" href="gyomu.html">
+      <span class="ic gyomu">📋</span>
+      <span class="tx"><div class="nm">業務状況管理</div><div class="ds">業務の進捗・連絡</div></span>
+      <span class="go">›</span>
+    </a>
+    <a class="app" href="portal.html">
+      <span class="ic portal">🗂️</span>
+      <span class="tx"><div class="nm">ポータル</div><div class="ds">各種メニューの入口</div></span>
+      <span class="go">›</span>
+    </a>
+
+    <h2>勤怠管理（自分の名前を選ぶ）</h2>
+    <p class="pick">※ 打刻の担当者が固定されます。<b>必ず自分の名前</b>のボタンを選んでください。</p>
+    <a class="app" href="kintai_hashimoto.html">
+      <span class="ic kintai">⏰</span>
+      <span class="tx"><div class="nm">勤怠管理 ― 橋本 圭さん</div><div class="ds">出退勤・有給申請</div></span>
+      <span class="go">›</span>
+    </a>
+    <a class="app" href="kintai_seki.html">
+      <span class="ic kintai">⏰</span>
+      <span class="tx"><div class="nm">勤怠管理 ― 関 一恵さん</div><div class="ds">出退勤・有給申請</div></span>
+      <span class="go">›</span>
+    </a>
+    <a class="app" href="kintai.html">
+      <span class="ic kintai">⏰</span>
+      <span class="tx"><div class="nm">勤怠管理 ― 中野 聖子さん</div><div class="ds">出退勤・有給申請</div></span>
+      <span class="go">›</span>
+    </a>
+
+    <footer>株式会社ブライトエフ電気 社内アプリ<br>困ったら中野までご連絡ください</footer>
+  </div>
+</body>
+</html>
