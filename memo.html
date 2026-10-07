@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<!-- saved from url=(0253)https://1018e93b-fcd7-4d62-b7d4-aada1ae863e7.frame.claudeusercontent.com/_f/1788767027-5522/?__frame_t=K87MRMGCn4OVzxd2BvIbklVj.e0d20a86-921e-4198-aa40-0c734ac6b1ee.5076567e-e253-4415-9c47-e95caf7eb9d3.1788771499&__frame_v=manifest.44244f2523adb29d.json -->
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><!-- frame-runtime --><!-- /frame-runtime --><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="使い方メモ"><meta name="mobile-web-app-capable" content="yes"><meta name="theme-color" content="#1b2942"><link rel="apple-touch-icon" href="memo.png"><link rel="icon" href="memo.png"><style>:root{color-scheme:light}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found]){display:none!important}</style></head><body>
+<title>社内ポータル 使い方メモ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com/">
+<link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin="">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&family=Zen+Kaku+Gothic+New:wght@400;500;700;900&display=swap">
+<style>
+  :root{
+    --navy:#1b2942; --navy-deep:#132033; --gold:#b98f43;
+    --ground:#f5f6fa; --card:#ffffff; --ink:#1b2436; --muted:#68738a;
+    --line:#e3e7f0; --line-soft:#eef1f7; --band:#f0f3f9;
+    --red:#c0492f; --amber:#b8791f; --green:#2f7d59;
+    --sans:"Noto Sans JP",-apple-system,"Hiragino Kaku Gothic ProN",Meiryo,sans-serif;
+    --disp:"Zen Kaku Gothic New",var(--sans);
+  }
+  @media (prefers-color-scheme:dark){
+    :root:not([data-theme="light"]){
+      --navy:#aebfe0; --navy-deep:#c7d4ee; --gold:#d3ab63;
+      --ground:#111725; --card:#182034; --ink:#e9edf6; --muted:#98a3ba;
+      --line:#2a3450; --line-soft:#222b42; --band:#1d263c;
+      --red:#e8836c; --amber:#e0b25a; --green:#66c298;
+    }
+  }
+  :root[data-theme="dark"]{
+    --navy:#aebfe0; --navy-deep:#c7d4ee; --gold:#d3ab63;
+    --ground:#111725; --card:#182034; --ink:#e9edf6; --muted:#98a3ba;
+    --line:#2a3450; --line-soft:#222b42; --band:#1d263c;
+    --red:#e8836c; --amber:#e0b25a; --green:#66c298;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--ground);color:var(--ink);font-family:var(--sans);line-height:1.75;
+    -webkit-font-smoothing:antialiased;font-feature-settings:"palt"}
+  .wrap{max-width:780px;margin:0 auto;padding:0 20px 72px}
+
+  header.top{background:linear-gradient(150deg,var(--navy-deep),var(--navy));color:#fff;margin-bottom:30px}
+  @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) header.top{color:#0e1420}}
+  :root[data-theme="dark"] header.top{color:#0e1420}
+  .top .inner{max-width:780px;margin:0 auto;padding:30px 20px 26px;display:flex;align-items:center;gap:16px}
+  .mono{width:52px;height:52px;flex:0 0 auto;border-radius:13px;background:#fff;color:var(--navy);
+    display:flex;align-items:center;justify-content:center;font-family:var(--disp);font-weight:900;font-size:22px;letter-spacing:.5px;box-shadow:0 3px 10px rgba(0,0,0,.25)}
+  :root[data-theme="dark"] .mono, :root:not([data-theme="light"]) .mono{color:#1b2942}
+  .top h1{font-family:var(--disp);font-weight:900;font-size:23px;margin:0;letter-spacing:.02em;text-wrap:balance}
+  .top .sub{font-size:12.5px;opacity:.82;margin-top:3px;letter-spacing:.04em}
+
+  section{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:24px 26px;margin-bottom:18px}
+  .eyebrow{font-family:var(--disp);font-weight:700;font-size:11px;letter-spacing:.22em;color:var(--gold);text-transform:uppercase;margin:0 0 4px}
+  h2{font-family:var(--disp);font-weight:800;font-size:19px;margin:0 0 14px;color:var(--navy);text-wrap:balance}
+  h2 .n{color:var(--gold);margin-right:.4em}
+  p{margin:0 0 12px;max-width:62ch}
+  p:last-child{margin-bottom:0}
+  .lead{color:var(--muted);font-size:14px}
+  b,strong{font-weight:700}
+  .hi{color:var(--navy);font-weight:700}
+
+  .feat{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+  .feat li{display:flex;gap:12px;align-items:baseline;padding:11px 14px;background:var(--band);border-radius:11px}
+  .feat .nm{font-weight:700;color:var(--ink);flex:0 0 7.2em}
+  .feat .ds{color:var(--muted);font-size:13.5px;flex:1;min-width:0}
+  .lock{flex:0 0 auto;font-size:10.5px;font-weight:700;color:var(--navy);background:var(--card);
+    border:1px solid var(--line);border-radius:20px;padding:2px 9px;white-space:nowrap}
+  .soon{flex:0 0 auto;font-size:10.5px;font-weight:700;color:var(--muted);background:var(--card);
+    border:1px dashed var(--line);border-radius:20px;padding:2px 9px;white-space:nowrap}
+
+  .steps{list-style:none;counter-reset:s;margin:8px 0 0;padding:0;display:grid;gap:12px}
+  .steps li{counter-increment:s;display:flex;gap:13px;align-items:flex-start}
+  .steps li::before{content:counter(s);flex:0 0 auto;width:26px;height:26px;border-radius:50%;
+    background:var(--navy);color:var(--card);font-weight:700;font-size:13px;display:flex;align-items:center;justify-content:center;margin-top:1px}
+  :root[data-theme="dark"] .steps li::before,:root:not([data-theme="light"]) .steps li::before{color:#141a28}
+  .steps .st{flex:1;min-width:0}
+  .steps code{font-family:var(--sans);background:var(--band);border:1px solid var(--line-soft);border-radius:6px;padding:1px 7px;font-size:13px;font-weight:700;color:var(--navy)}
+
+  .rule{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:4px}
+  @media (max-width:560px){.rule{grid-template-columns:1fr}}
+  .rule .r{padding:13px 15px;border:1px solid var(--line);border-radius:11px;background:var(--card)}
+  .rule .r .k{font-weight:700;font-size:13.5px;margin-bottom:3px}
+  .rule .r .v{color:var(--muted);font-size:12.5px}
+  .rule .r.warnbox{border-color:color-mix(in srgb,var(--red) 40%,var(--line));background:color-mix(in srgb,var(--red) 7%,var(--card))}
+
+  .legend{display:flex;flex-wrap:wrap;gap:16px;margin-top:6px;padding:14px 16px;background:var(--band);border-radius:11px}
+  .legend span{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600}
+  .dot{width:11px;height:11px;border-radius:50%;flex:0 0 auto}
+  .dot.r{background:var(--red)} .dot.a{background:var(--amber)} .dot.g{background:var(--green)}
+
+  .callout{display:flex;gap:12px;padding:15px 17px;border-radius:12px;background:color-mix(in srgb,var(--amber) 10%,var(--card));
+    border:1px solid color-mix(in srgb,var(--amber) 35%,var(--line));font-size:13.5px}
+  .callout .ic{flex:0 0 auto;font-size:17px;line-height:1.4}
+  .callout b{color:var(--ink)}
+
+  .foot{text-align:center;color:var(--muted);font-size:12px;margin-top:26px;line-height:1.9}
+  .foot .big{font-family:var(--disp);font-weight:700;color:var(--ink);font-size:14px}
+
+  a{color:var(--navy);text-underline-offset:2px}
+  @media print{
+    body{background:#fff}
+    header.top{color:#000}
+    section{border-color:#ccc;break-inside:avoid;box-shadow:none}
+    .top{background:#fff !important}.mono{box-shadow:none;border:1px solid #999}
+    .top h1,.top .sub{color:#111}
+  }
+</style>
+
+<header class="top">
+  <div class="inner">
+    <div class="mono">BF</div>
+    <div>
+      <h1>社内ポータル 使い方メモ</h1>
+      <div class="sub">株式会社ブライトエフ電気 ／ bright future ・ 総務管理</div>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <section>
+    <p class="eyebrow">はじめに</p>
+    <h2>これは何のサイト？</h2>
+    <p class="lead">会社の大事な情報を1か所にまとめた社内向けのサイトです。従業員のこと、資格の期限、保険や許可の原本、車のこと、社長の書類などを、探しやすく・更新忘れしにくい形で管理します。</p>
+    <p>開き方：ポータルのURL（ <span class="hi">〔ブックマーク〕</span> ）を開くだけ。🔒がついた機能は、最初に <b>PIN（暗証番号）</b> を入れると中が見られます。<br><span class="lead">※PINは中野から直接お伝えします（この控えには書きません）。</span></p>
+  </section>
+
+  <section>
+    <p class="eyebrow">できること</p>
+    <h2>機能の一覧</h2>
+    <ul class="feat">
+      <li><span class="nm">人事・労務</span><span class="ds">従業員の台帳・保険・緊急連絡先・健診・本人の書類</span><span class="lock">🔒 PIN</span></li>
+      <li><span class="nm">資格・講習</span><span class="ds">資格証・免状・講習の期限を人別に管理</span><span class="lock">🔒 PIN</span></li>
+      <li><span class="nm">重要書類</span><span class="ds">保険・許可・契約などの原本と期限（会社全体＋人別）</span><span class="lock">🔒 PIN</span></li>
+      <li><span class="nm">車両管理</span><span class="ds">車検・自賠責・任意保険・点検の期限</span></li>
+      <li><span class="nm">負債管理</span><span class="ds">借入・リースの残高と返済予定</span><span class="lock">🔒 PIN</span></li>
+      <li><span class="nm">社長</span><span class="ds">社長個人の保険・資産・重要書類</span><span class="lock">🔒 PIN</span></li>
+      <li><span class="nm">経理 ほか</span><span class="ds">経理／総務・許認可／安全書類／協力会社</span><span class="soon">準備中</span></li>
+    </ul>
+  </section>
+
+  <section>
+    <p class="eyebrow">操作の基本</p>
+    <h2>覚えるのは4つだけ</h2>
+    <ul class="feat">
+      <li><span class="nm">追加する</span><span class="ds">右上の「＋ 追加」ボタン → 入力して保存</span></li>
+      <li><span class="nm">直す／消す</span><span class="ds">その行の「編集」→ 直して保存、または「削除」</span></li>
+      <li><span class="nm">書類を付ける</span><span class="ds">編集画面で「ファイルを選択」→ PDFや写真を添付</span></li>
+      <li><span class="nm">中身を見る</span><span class="ds">「📄 プレビュー」でその場で書類を開く</span></li>
+    </ul>
+    <div class="legend">
+      <span><span class="dot r"></span>要更新（期限切れ・間近）</span>
+      <span><span class="dot a"></span>更新間近</span>
+      <span><span class="dot g"></span>有効</span>
+    </div>
+  </section>
+
+  <section>
+    <p class="eyebrow">迷わないために</p>
+    <h2>どこに何を入れる？</h2>
+    <div class="rule">
+      <div class="r"><div class="k">会社全体の書類</div><div class="v">保険・許可・契約・登記・税務など → <b>重要書類</b></div></div>
+      <div class="r"><div class="k">従業員 個人の書類</div><div class="v">雇用契約・健診結果・傷病手当金など → <b>人事・労務</b>の本人に添付</div></div>
+      <div class="r"><div class="k">会社の保険</div><div class="v">経営者保険・賠償責任など → 重要書類「<b>保険</b>」</div></div>
+      <div class="r"><div class="k">社会保険の年度書類</div><div class="v">算定基礎・標準報酬決定・納付など → 重要書類「<b>社会保険</b>」</div></div>
+    </div>
+    <p class="lead" style="margin-top:14px">重要書類は「会社全体」と「従業員別」で自動整理されます。個人にまとめたい書類は、<b>書類名に氏名を入れる</b>とその人の下に入ります（例：「標準報酬決定通知書 今田雄太郎」）。</p>
+    <p class="lead" style="margin-top:6px">入れる場所を間違えても大丈夫。編集画面の <b>「👤 本人へ移動」/「📁 重要書類へ移動」</b> で付け替えられます（ファイルはそのまま）。</p>
+  </section>
+
+  <section>
+    <p class="eyebrow">毎月の安心作業</p>
+    <h2><span class="n">A.</span>バックアップの手順</h2>
+    <p class="lead">万一に備え、<b>月に1回</b>コピーを取ります。バックアップするのは「データ表」と「添付ファイル」の2つ。Googleドライブでの作業です。</p>
+
+    <p style="margin:16px 0 2px"><b>① データ表をコピー</b></p>
+    <ol class="steps">
+      <li><div class="st">Googleドライブで <code>ブライトエフ電気_社内ポータル_データ</code> を開く</div></li>
+      <li><div class="st">メニューの <code>ファイル</code> → <code>コピーを作成</code>（またはExcelで <code>ダウンロード</code>）</div></li>
+      <li><div class="st">名前を <code>データ_バックアップ_2026-09-07</code> のように<b>日付付き</b>にして「バックアップ」フォルダへ</div></li>
+    </ol>
+
+    <p style="margin:18px 0 2px"><b>② 添付ファイルをコピー</b></p>
+    <ol class="steps">
+      <li><div class="st">Googleドライブで <code>ブライトエフ電気_社内ポータル_添付ファイル</code> フォルダを開く</div></li>
+      <li><div class="st">フォルダを右クリック → <code>ダウンロード</code>（ZIPで保存されます）</div></li>
+      <li><div class="st">同じく日付を付けて「バックアップ」フォルダへ保存</div></li>
+    </ol>
+    <p class="lead" style="margin-top:14px">直近3回分くらい残せば十分です。古いものは消してOK。</p>
+  </section>
+
+  <section>
+    <p class="eyebrow">やってはいけないこと</p>
+    <h2><span class="n">B.</span>注意点</h2>
+    <div class="rule">
+      <div class="r warnbox"><div class="k">取込フォルダのファイルを消さない</div><div class="v"><code>〜ここに入れる（自動取込）</code>や添付フォルダのファイルを消すと、アプリの「開く／プレビュー」が切れます。<b>移動はOK・削除はNG</b>。</div></div>
+      <div class="r warnbox"><div class="k">PINは必要な人だけに</div><div class="v">🔒は表示を隠す簡易ロックです。URLとPINは、見せてよい人にだけ伝えてください。</div></div>
+    </div>
+    <div class="callout" style="margin-top:14px">
+      <div class="ic">💡</div>
+      <div>個人情報（給与・生年月日・健康・社長の資産など）を扱います。<b>共有範囲は最小限</b>に。人が増えて厳密に分けたくなったら、Google Workspace の導入を検討しましょう。</div>
+    </div>
+  </section>
+
+  <section>
+    <p class="eyebrow">困ったとき</p>
+    <h2>うまくいかない・分からない</h2>
+    <p>まずは画面を閉じて開き直す／PINを入れ直す、で直ることが多いです。それでもダメなときや、新しい機能・分類の相談は <b class="hi">総務・中野</b> まで。書類の入れ場所に迷ったら、その書類を見せてもらえれば一緒に判断します。</p>
+  </section>
+
+  <div class="foot">
+    <div class="big">株式会社ブライトエフ電気　社内ポータル</div>
+    bright future ／ この控えは総務保管用（最終更新 2026-09-07）
+  </div>
+
+</div>
+
+</body></html>
