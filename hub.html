@@ -155,7 +155,7 @@
 
   <div id="homeBox">
     <section class="today">
-      <h2>今日やること <span class="cnt" id="todoCnt"></span> <span class="sample">見本</span></h2>
+      <h2>今日やること <span class="cnt" id="todoCnt"></span></h2>
       <p class="lead">今すぐやること。「やる」を押すと開きます。</p>
       <div class="rows" id="todo"></div>
     </section>
@@ -186,9 +186,6 @@
   <div class="vbar"><button class="vback" id="vBack"><span>‹</span>一覧へもどる</button><div class="vttl" id="vTtl"></div></div>
   <div class="vbody" id="vBody"></div>
   <div class="vload hidden" id="vLoad"><div class="spin"></div>開いています…</div>
-</div>
-<div class="demo-bar">（デモ用・本番にはありません）デモ版：だれの画面か切り替え
-  <select id="roleSel"><option value="all|橋本　圭">社員（橋本さんの入口）</option><option value="all|関　一恵">社員（関さんの入口）</option><option value="boss|">社長</option><option value="me|">中野</option></select>
 </div>
 
 <script>
@@ -248,16 +245,15 @@ var HELP = [
 ];
 
 /* 今日やること（デモ用の見本。本番は実際の情報を読み込む） */
-var TODO = [
-  { who:"boss",  lv:"red",   do:"車検の手続きをする：ハイエース", path:"社内ポータル → <b>車両管理</b>（期限 10/20）", badge:"あと12日", go:"portal" },
-];
+var TODO = [];   // 本物の情報（期限・承認待ちなど）とつないだらここに入る
 
 /* 勤怠の担当者（このスマホ・パソコンで固定） */
 var STAFF = ["橋本　圭", "関　一恵", "中野　聖子"];
 
 /* ===================================================================== */
 function store(k, v){ try { if (v === undefined) return localStorage.getItem(k) || ""; localStorage.setItem(k, v); } catch(e){ return ""; } }
-var ROLE = new URLSearchParams(location.search).get("r") || store("bf_role") || "all";
+var ROLE = new URLSearchParams(location.search).get("r") || "all";
+if (["all","boss","me"].indexOf(ROLE) < 0) ROLE = "all";
 var ME = new URLSearchParams(location.search).get("me") || "";   // 例：hub.html?me=関　一恵（人ごとの入口）
 function can(x){
   if (ROLE === "me") return true;
@@ -280,7 +276,6 @@ var ALL = DAILY.concat([PORTAL]).concat(HELP).concat(TIPS);
 function find(id){ return ALL.filter(function(x){ return x.id === id; })[0]; }
 
 function render(){
-  var sel = document.getElementById("roleSel"); sel.value = ROLE + "|" + (ROLE === "all" ? ME : ""); if (sel.selectedIndex < 0){ sel.selectedIndex = 0; var v0 = sel.value.split("|"); ROLE = v0[0]; ME = v0[1] || ""; }
   var todo = TODO.filter(can).map(function(t){ var target = find(t.go); return Object.assign({}, t, { id:t.go, app:target.app, ico:target.ico, color:target.color, lock:false }); });
   var order = { red:0, amber:1, green:2 };
   todo.sort(function(a,b){ return order[a.lv]-order[b.lv]; });
@@ -325,7 +320,7 @@ function frame(url, show){
     var el = document.createElement("iframe");
     el.setAttribute("allow", "camera; microphone; clipboard-read; clipboard-write; geolocation");
     f = FR[url] = { el:el, t:Date.now(), loaded:false };
-    el.onload = function(){ f.loaded = true; if (active === f) document.getElementById("vLoad").classList.add("hidden"); };
+    el.onload = function(){ f.loaded = true; };
     el.src = url;
     document.getElementById("vBody").appendChild(el);
   }
@@ -336,7 +331,12 @@ function go(url, title){
   Object.keys(FR).forEach(function(k){ FR[k].el.classList.toggle("on", FR[k] === f); });
   active = f;
   document.getElementById("vTtl").textContent = title || "";
-  document.getElementById("vLoad").classList.toggle("hidden", f.loaded);
+  var ld = document.getElementById("vLoad");
+  if (!f.shown){   // 初めて見せる時は、中身が出るまで少し「開いています…」を重ねる
+    f.shown = true; ld.classList.remove("hidden");
+    var hideLater = function(){ setTimeout(function(){ if (active === f) ld.classList.add("hidden"); }, 2500); };
+    if (f.loaded) hideLater(); else f.el.addEventListener("load", hideLater, { once:true });
+  } else ld.classList.toggle("hidden", f.loaded);
   document.getElementById("viewer").classList.remove("hidden");
   history.pushState({ app:1 }, "");
 }
@@ -355,8 +355,6 @@ document.addEventListener("click", function(e){
   if (el.closest("#todo")) store("bf_thanks", String(Date.now()));   // 用事をすませて戻ったら「ありがとう」
   openItem(el.getAttribute("data-id"));
 });
-document.getElementById("roleSel").addEventListener("change", function(){   // デモ用：だれの入口かを切り替え
-  var v = this.value.split("|"); ROLE = v[0]; ME = v[1] || ""; store("bf_role", ROLE); render(); greet(); preload(); q.value = ""; q.dispatchEvent(new Event("input")); });
 
 /* ===== さがす ===== */
 var q = document.getElementById("q");
