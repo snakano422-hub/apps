@@ -1,0 +1,419 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="ブライトエフ電気">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#1b2942">
+<link rel="apple-touch-icon" href="hub.png">
+<link rel="icon" href="hub.png">
+<link rel="icon" sizes="512x512" href="hub_512.png">
+<link rel="preconnect" href="https://script.google.com">
+<link rel="preconnect" href="https://script.googleusercontent.com">
+<title>ブライトエフ電気 アプリ</title>
+<style>
+  :root{ --navy:#1b2942; --navy2:#2a3a5c; --gold:#c8a35b; --bg:#f4f6fa; --ink:#1b2942; --muted:#6b7386; --line:#e2e7f0; --link:#2a5bb8; }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:"Hiragino Kaku Gothic ProN","Yu Gothic UI","Meiryo",sans-serif;-webkit-text-size-adjust:100%;}
+
+  header{display:flex;align-items:center;gap:10px;padding:12px 18px;
+    background:linear-gradient(160deg,var(--navy2),var(--navy));color:#fff;border-bottom:3px solid var(--gold);}
+  header img{width:30px;height:34px;object-fit:contain;}
+  header .t{font-size:17px;font-weight:800;white-space:nowrap;}
+  header .dt{margin-left:auto;font-size:13px;color:#cdd4e4;white-space:nowrap;}
+  header .dt b{font-size:18px;color:#fff;margin-left:6px;font-variant-numeric:tabular-nums;}
+  .demo-bar{background:#fff4d6;color:#7a5a12;font-size:12px;text-align:center;padding:6px 10px;border-top:1px solid #f0d79a;}
+  /* 🐶のひとこと（情報ではなく気持ち。小さく控えめに）*/
+  .greet{font-size:15px;color:#8a6a2a;font-weight:700;margin:6px 4px 10px;min-height:22px;}
+  .greet .dog{font-size:18px;margin-right:4px;vertical-align:-2px;}
+  .demo-bar select{font-size:12px;font-family:inherit;font-weight:700;margin-left:4px;}
+
+  /* 画面の幅に合わせて広げる（PCで左右が空きすぎないように）。下の文は画面のいちばん下へ */
+  main{max-width:1280px;margin:0 auto;padding:16px 28px 22px;display:flex;flex-direction:column;min-height:calc(100vh - 92px);box-sizing:border-box;}
+
+  /* 基本ルール：迷ったら、ここに入力（いつも画面の上に出しておく）*/
+  .askbox{position:sticky;top:0;z-index:4;background:var(--bg);padding:10px 0 8px;margin:-6px 0 0;}
+  .ask{font-size:14px;font-weight:900;color:var(--navy);margin:0 4px 6px;display:flex;align-items:center;gap:6px;}
+  .ask .rule{font-size:11px;font-weight:800;background:var(--navy);color:#fff;border-radius:6px;padding:2px 7px;}
+  .search{display:flex;align-items:center;gap:8px;background:#fff;border:2px solid var(--gold);border-radius:14px;padding:0 14px;box-shadow:0 2px 8px rgba(200,163,91,.18);}
+  .search:focus-within{border-color:#b08a3e;box-shadow:0 0 0 4px rgba(200,163,91,.25);}
+  .search input{flex:1;border:0;outline:0;font-size:16px;padding:13px 0;background:transparent;color:var(--ink);font-family:inherit;}
+  .hint{font-size:12.5px;color:var(--muted);margin:6px 4px 0;}
+
+  section{margin-top:24px;}
+  h2{font-size:17px;margin:0 2px 2px;color:var(--navy);display:flex;align-items:center;gap:8px;}
+  h2::before{content:"";width:5px;height:18px;border-radius:3px;background:var(--gold);}
+  .lead{font-size:13px;color:var(--muted);margin:0 2px 10px 15px;}
+
+  /* 行（今日やること・いつも使う・ポータル 共通）*/
+  .rows{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:10px;}
+  .row{display:flex;align-items:center;gap:12px;background:#fff;border:1px solid var(--line);border-radius:14px;padding:11px 14px;
+    cursor:pointer;text-align:left;width:100%;font-family:inherit;color:inherit;}
+  .row:hover{border-color:#b9c6dc;box-shadow:0 4px 12px rgba(27,41,66,.08);}
+  .row:focus-visible{outline:3px solid #9db4dc;}
+  .ico{width:44px;height:44px;border-radius:11px;flex:0 0 auto;display:flex;align-items:center;justify-content:center;font-size:22px;color:#fff;overflow:hidden;}
+  .ico img{width:100%;height:100%;object-fit:cover;}
+  .txt{min-width:0;flex:1;}
+  .do{font-size:16px;font-weight:800;line-height:1.35;}
+  .path{font-size:12.5px;color:var(--muted);margin-top:2px;line-height:1.45;}
+  .path b{color:var(--ink);font-weight:700;}
+  .arrow{color:var(--gold);font-size:22px;font-weight:800;flex:0 0 auto;}
+  .lock{font-size:11px;font-weight:700;background:#eef1f6;color:var(--navy);border-radius:6px;padding:1px 6px;margin-left:6px;vertical-align:2px;}
+  .pc{font-size:11px;font-weight:700;background:#fdeee8;color:#b2552c;border-radius:6px;padding:1px 6px;margin-left:6px;vertical-align:2px;}
+
+  /* 今日やること＝今すぐやる（色の付いた枠でまとめる）*/
+  .today{background:#fff6e6;border:2px solid #efc777;border-radius:18px;padding:14px 14px 14px;}
+  .today h2::before{background:#d99a2b;}
+  .today .cnt{font-size:13px;font-weight:900;background:#d99a2b;color:#fff;border-radius:999px;padding:2px 10px;}
+  .today .lead{color:#8a6a2a;}
+  .today .rows{grid-template-columns:repeat(auto-fit,minmax(420px,1fr));}   /* 今日やることは横に広げて最大2列 */
+  .today .row{border:1px solid #f0dcb3;border-left:6px solid var(--muted);}
+  .today .red{border-left-color:#c0492f;} .today .amber{border-left-color:#d99a2b;} .today .green{border-left-color:#3a7d5c;}
+  .today .row .doit{flex:0 0 auto;background:var(--navy);color:#fff;font-size:13px;font-weight:800;border-radius:10px;padding:7px 12px;white-space:nowrap;}
+  .today .row .bd{display:flex;flex-direction:column;align-items:flex-end;gap:6px;}
+  /* いつも使う＝いつでも使える（落ち着いた白いボタン）*/
+  .always .row{box-shadow:none;}
+  .always .arrow{color:#b9c2d0;}
+  .badge{font-size:12px;font-weight:800;white-space:nowrap;border-radius:999px;padding:3px 10px;}
+  .red .badge{background:#fbe9e5;color:#c0492f;} .amber .badge{background:#fbf1e2;color:#a96b17;} .green .badge{background:#e6f2ec;color:#3a7d5c;}
+  .none{background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px;font-size:14px;color:var(--muted);}
+  .sample{font-size:11px;color:#2a4a8a;background:#e8f0fe;border-radius:6px;padding:1px 6px;font-weight:700;}
+
+  /* ポータルの中身 */
+  .inside{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;}
+  .inside span{font-size:12px;background:#f1f4f9;border:1px solid var(--line);border-radius:999px;padding:2px 9px;color:var(--ink);}
+
+  .noresult{background:#fff;border:1px dashed #c9d3e3;border-radius:14px;padding:16px;font-size:14px;color:var(--muted);line-height:1.7;}
+  footer{margin-top:auto;padding-top:26px;font-size:13px;color:var(--muted);text-align:center;}
+  /* 会社の情報とその他を横に並べる（PC）*/
+  .lower{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:0 28px;}
+  .lower .rows{grid-template-columns:1fr;}
+  @media (min-width:1100px){
+    section{margin-top:28px;}
+    .row{padding:14px 16px;min-height:76px;}
+    .ico{width:48px;height:48px;border-radius:12px;}
+    .lower{grid-template-columns:2fr 1fr;}
+    .lower.solo{grid-template-columns:1fr 2fr;}
+  }
+  /* アプリを開く画面（入口の上に重ねる。もどると隠すだけなので一瞬で戻れる）*/
+  .viewer{position:fixed;inset:0;z-index:30;background:#fff;}
+  .vbar{position:absolute;top:0;left:0;right:0;height:calc(46px + env(safe-area-inset-top));padding:env(safe-area-inset-top) 12px 0 8px;
+    display:flex;align-items:center;gap:10px;background:#1b2942;border-bottom:2px solid #c8a35b;color:#fff;box-sizing:border-box;}
+  .vback{display:flex;align-items:center;gap:4px;background:#c8a35b;color:#1b2942;border:0;border-radius:10px;height:34px;padding:0 12px 0 8px;
+    font-size:15px;font-weight:900;cursor:pointer;font-family:inherit;white-space:nowrap;}
+  .vback span{font-size:20px;line-height:1;margin-top:-2px;}
+  .vttl{font-size:15px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .vbody{position:absolute;left:0;right:0;bottom:0;top:calc(46px + env(safe-area-inset-top));}
+  .vbody iframe{position:absolute;inset:0;width:100%;height:100%;border:0;background:#fff;visibility:hidden;}
+  .vbody iframe.on{visibility:visible;}
+  .vload{position:absolute;left:0;right:0;bottom:0;top:calc(46px + env(safe-area-inset-top));display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;
+    background:#f4f6fa;color:var(--muted);font-size:15px;font-weight:700;}
+  .spin{width:34px;height:34px;border-radius:50%;border:4px solid #e2e7f0;border-top-color:#c8a35b;animation:sp .8s linear infinite;}
+  @keyframes sp{to{transform:rotate(360deg);}}
+  .hidden{display:none !important;}
+  /* 名前えらび */
+  .mbg{position:fixed;inset:0;background:rgba(19,32,51,.55);display:flex;align-items:center;justify-content:center;z-index:20;padding:16px;}
+  .mbox{background:#fff;border-radius:18px;max-width:340px;width:100%;padding:22px 20px;text-align:center;}
+  .mbox h3{margin:0 0 6px;font-size:18px;}
+  .mbox p{margin:0 0 14px;font-size:13px;color:var(--muted);line-height:1.6;}
+  .nm-btn{display:block;width:100%;margin:8px 0;padding:13px;border-radius:12px;border:1px solid var(--line);background:#eef1f6;
+    font-size:17px;font-weight:800;color:var(--navy);cursor:pointer;font-family:inherit;}
+  .cancel{margin-top:4px;background:none;border:0;color:var(--muted);font-size:13px;cursor:pointer;font-family:inherit;}
+
+  @media (max-width:640px){
+    header{padding:10px 12px;gap:8px;}
+    header .t{font-size:15px;}
+    header .dt{font-size:11px;display:flex;flex-direction:column;align-items:flex-end;line-height:1.25;} header .dt b{font-size:15px;margin-left:0;}
+    main{padding:12px 12px 36px;}
+    .rows{grid-template-columns:1fr;}
+    main{padding:12px 12px 24px;min-height:0;}
+    .today .rows{grid-template-columns:1fr;}
+  }
+</style>
+</head>
+<body>
+<header>
+  <img src="logo.png" alt="">
+  <div class="t">ブライトエフ電気</div>
+  <div class="dt"><span id="dt"></span><b id="tm"></b></div>
+</header>
+
+<main>
+  <div class="greet" id="greet"></div>
+  <div class="askbox">
+    <div class="ask"><span class="rule">きまり</span>分からない時は、やりたいことを入れてください</div>
+    <label class="search">🔍<input id="q" type="search" placeholder="例：有給、出勤、名刺、車検" autocomplete="off"></label>
+
+  </div>
+
+  <div id="resultBox" class="hidden">
+    <section><h2>見つかったもの</h2><p class="lead">押すと、その画面が開きます。</p><div class="rows" id="results"></div></section>
+  </div>
+
+  <div id="homeBox">
+    <section class="today">
+      <h2>今日やること <span class="cnt" id="todoCnt"></span> <span class="sample">見本</span></h2>
+      <p class="lead">今すぐやること。「やる」を押すと開きます。</p>
+      <div class="rows" id="todo"></div>
+    </section>
+
+    <section class="always">
+      <h2>いつも使う</h2>
+      <p class="lead">いつでも使えるアプリです。</p>
+      <div class="rows" id="daily"></div>
+    </section>
+
+    <div class="lower" id="lower">
+    <section id="portalSec" class="always">
+      <h2>会社の情報</h2>
+      <p class="lead">会社の書類や期限は、すべて社内ポータルの中です。</p>
+      <div class="rows" id="portal"></div>
+    </section>
+
+    <section class="always">
+      <h2>その他</h2>
+      <div class="rows" id="help"></div>
+    </section>
+    </div>
+  </div>
+
+  <footer>それでも分からない時は、中野まで声をかけてください。</footer>
+</main>
+<div class="viewer hidden" id="viewer">
+  <div class="vbar"><button class="vback" id="vBack"><span>‹</span>一覧へもどる</button><div class="vttl" id="vTtl"></div></div>
+  <div class="vbody" id="vBody"></div>
+  <div class="vload hidden" id="vLoad"><div class="spin"></div>開いています…</div>
+</div>
+<div class="demo-bar">（デモ用・本番にはありません）デモ版：だれの画面か切り替え
+  <select id="roleSel"><option value="all|橋本　圭">社員（橋本さんの入口）</option><option value="all|関　一恵">社員（関さんの入口）</option><option value="boss|">社長</option><option value="me|">中野</option></select>
+</div>
+
+<script>
+/* =====================================================================
+   ここを直せば画面全体に反映されます
+   who : staff=社員と中野 / boss=社長と中野 / all=全員 / me=中野だけ
+   do  : ボタンに出す「やりたいこと」（動詞で書く）
+   path: 開いたあとに押す場所（「 → 」でつなぐ）
+   kw  : さがす時に引っかける言葉（言い換えも入れる）
+   ===================================================================== */
+var URL_PORTAL = "https://script.google.com/macros/s/AKfycbyUnlcIJSoidvlUmw8hEOi19E4zqabsa6P0uzcr1s7RKZy5-0E9noArEsoTTHi2HTAh/exec";
+var URL_KINTAI = "https://script.google.com/macros/s/AKfycbwfy78QKZg9WQZsa_EvxOLM5Xvc3QcVG3GaWUlz1Vuhts3t1AOzUfe8y-14hH4n0LnIow/exec";
+
+var IMG = { calendar:"", kintai:"kintai.png", gyomu:"gyomu.png", meishi:"meishi.png", anzen:"anzen.png", portal:"portal.png", memo:"memo.png", guide:"guide.png" };
+
+/* ホームに出すボタン：みんなが慣れているアプリ名で1つずつ。下の一言で「何ができるか・開いたらどこを押すか」 */
+var DAILY = [
+  /* 勤怠管理：みんな慣れているので、入口からは「いつもの画面をそのまま開く」だけ（中の機能は分けない）*/
+  { id:"kintai",  who:"all", app:"kintai", do:"勤怠管理",
+    pathBy:{ all:"出勤・退勤・有給申請", boss:"有給の承認・勤怠の確認", me:"打刻・有給申請・有給の承認" },
+    kw:"勤怠 出勤 退勤 打刻 出社 帰る 休憩 タイムカード 有給 有休 年休 休み 休暇 休む 半休 申請 承認 勤務時間 残業" },
+  /* 予定：各自のGoogleカレンダーを1画面にまとめたアプリ（2026-10-09 本番公開） */
+  { id:"calendar", who:"all", ico:"📅", color:"#1a73e8", do:"予定", path:"みんなの予定を見る・入れる",
+    url:"https://script.google.com/macros/s/AKfycbyX0YoTkRiNn8Hwr73K_9K3Ax3lqfhiGXHwyfOeFDGpJRKN2KHFQkpoY5porWbZzKAYqA/exec", kw:"予定 カレンダー スケジュール 日程 訪問 打ち合わせ 会議 休日 いつ" },
+  { id:"meishi",  who:"all", app:"meishi", do:"名刺管理", path:"名刺をさがす・登録する", url:"https://script.google.com/macros/s/AKfycbyh3vC9phrHOBHuMP8OQxy3Xw519VKpPKkFbMCqSG2Q27NPy_d3Wa2OjFMRJEo12U3KDw/exec",
+    kw:"名刺 連絡先 電話番号 取引先 お客さん 登録" },
+  { id:"anzen",   who:"all", app:"anzen",  do:"安全書類・協力会社", path:"現場の安全書類・協力会社の情報", url:"https://script.google.com/macros/s/AKfycbxIBr7mxIg9jvJ9M16b6SfliOslS3qy8u1BcLE_oU4wtuZdSASDG2mGJjIjG4MiO2twRw/exec",
+    kw:"安全書類 グリーンファイル 協力会社 作業員 下請け 保険 現場" },
+  { id:"mcard",   who:"me",  ico:"🪪", color:"#2c406c", do:"名刺作成", path:"新しい人の名刺をつくる", pc:true,
+    kw:"名刺 作成 つくる 印刷" }
+];
+
+/* 「さがす」で入れた時だけ出す案内（開くアプリは open のもの）*/
+var TIPS = [];   // 勤怠管理の中の機能（有給申請・承認など）は入口で分けない
+/* 社内ポータル（社長と中野だけ）：1つにまとめ、中身は名前だけ並べる */
+var PORTAL = { id:"portal", who:"boss", app:"portal", do:"社内ポータルを開く", url:URL_PORTAL,
+  path:"社内ポータル → <b>見たい項目のカード</b>を押す（🔒の付いたカードは暗証番号）",
+  inside:["人事・労務","資格・講習","重要書類","車両管理（車検）","経理","負債","総務・許認可","社長"],
+  kw:"ポータル 会社 書類 期限 人事 労務 従業員 社会保険 健診 資格 免許 講習 重要書類 保険 許可 契約 車 車両 車検 自賠責 経理 お金 請求 負債 借入 融資 リース 総務 許認可 建設業 届出 社長",
+  /* さがした言葉に合わせて「どのカードを押すか」を教える */
+  /* [さがす言葉, 押すカード, ボタンの文, 暗証番号が要るか] */
+  where:[ ["車 車両 車検 自賠責","車両管理","車検・車の保険を確認する",false],
+          ["資格 免許 講習","資格・講習","資格・講習の期限を確認する",true],
+          ["人事 労務 従業員 社会保険 健診","人事・労務","従業員の情報を見る",true],
+          ["重要書類 保険 許可 契約","重要書類","保険・許可・契約の書類を見る",true],
+          ["経理 お金 請求","経理","経理の書類を見る",true],
+          ["負債 借入 融資 リース","負債","借入・リースを確認する",true],
+          ["総務 許認可 建設業 届出","総務・許認可","許可・届出の期限を確認する",false],
+          ["社長","社長","社長個人の書類を見る",true] ] };
+
+var HELP = [
+  /* 業務状況管理：あまり使っていないので「その他」へ（2026-10-09）*/
+  { id:"gyomu", who:"all", app:"gyomu", do:"業務状況管理", path:"仕事の連絡・進み具合", url:"https://script.google.com/macros/s/AKfycbzzZKeduauBYCEoxf0ZcBKviH0e1n4efP3vGvWfmkJUxAVEnXq5WSIBVEWf6ug55YdR/exec",
+    kw:"業務 仕事 進捗 連絡 タスク やること 現場 チャット 報告" },
+  { id:"memo",  who:"boss", app:"memo",  do:"社内ポータルの使い方を読む", path:"使い方メモ", url:"memo.html", kw:"使い方 説明 ヘルプ マニュアル ポータル" },
+  { id:"guide", who:"all",  app:"guide", do:"スマホにアプリを入れる",     path:"スマホへの入れ方", url:"index.html", kw:"スマホ 設定 入れ方 ホーム画面 iPhone Android" }
+];
+
+/* 今日やること（デモ用の見本。本番は実際の情報を読み込む） */
+var TODO = [
+  { who:"boss",  lv:"red",   do:"車検の手続きをする：ハイエース", path:"社内ポータル → <b>車両管理</b>（期限 10/20）", badge:"あと12日", go:"portal" },
+];
+
+/* 勤怠の担当者（このスマホ・パソコンで固定） */
+var STAFF = ["橋本　圭", "関　一恵", "中野　聖子"];
+
+/* ===================================================================== */
+function store(k, v){ try { if (v === undefined) return localStorage.getItem(k) || ""; localStorage.setItem(k, v); } catch(e){ return ""; } }
+var ROLE = new URLSearchParams(location.search).get("r") || store("bf_role") || "all";
+var ME = new URLSearchParams(location.search).get("me") || "";   // 例：hub.html?me=関　一恵（人ごとの入口）
+function can(x){
+  if (ROLE === "me") return true;
+  if (ROLE === "boss") return x.who === "boss" || x.who === "all";
+  return x.who === "staff" || x.who === "all";
+}
+function esc(s){ return String(s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];}); }
+function ico(x){
+  if (x.ico) return '<span class="ico" style="background:'+x.color+'">'+x.ico+'</span>';
+  return '<span class="ico"><img src="'+IMG[x.app]+'" alt=""></span>';
+}
+function row(x, extra){
+  var me = (x.app === "kintai" && ROLE === "all" && ME) ? '（'+esc(ME.replace("　"," "))+'さん）' : "";
+  return '<button class="row '+(x.lv||"")+'" data-id="'+x.id+'">'+ico(x)+
+    '<span class="txt"><div class="do">'+esc(x.do)+(x.lock?'<span class="lock">🔒暗証番号</span>':'')+(x.pc?'<span class="pc">パソコンだけ</span>':'')+'</div>'+
+    '<div class="path">'+(x.pathBy ? (x.pathBy[ROLE]||x.pathBy.all) : x.path)+me+'</div>'+(extra||"")+'</span>'+
+    (x.badge?'<span class="bd"><span class="badge">'+esc(x.badge)+'</span><span class="doit">やる ›</span></span>':'<span class="arrow">›</span>')+'</button>';
+}
+var ALL = DAILY.concat([PORTAL]).concat(HELP).concat(TIPS);
+function find(id){ return ALL.filter(function(x){ return x.id === id; })[0]; }
+
+function render(){
+  var sel = document.getElementById("roleSel"); sel.value = ROLE + "|" + (ROLE === "all" ? ME : ""); if (sel.selectedIndex < 0){ sel.selectedIndex = 0; var v0 = sel.value.split("|"); ROLE = v0[0]; ME = v0[1] || ""; }
+  var todo = TODO.filter(can).map(function(t){ var target = find(t.go); return Object.assign({}, t, { id:t.go, app:target.app, ico:target.ico, color:target.color, lock:false }); });
+  var order = { red:0, amber:1, green:2 };
+  todo.sort(function(a,b){ return order[a.lv]-order[b.lv]; });
+  document.getElementById("todo").innerHTML = todo.length ? todo.map(function(t){ return row(t); }).join("")
+    : '<div class="none">今日やることは、今のところありません 👍</div>';
+  document.getElementById("todoCnt").textContent = todo.length ? todo.length+"件" : "";
+  document.getElementById("todoCnt").classList.toggle("hidden", !todo.length);
+  document.getElementById("daily").innerHTML = DAILY.filter(can).map(function(x){ return row(x); }).join("");
+  var showPortal = can(PORTAL);
+  document.getElementById("portalSec").classList.toggle("hidden", !showPortal);
+  document.getElementById("lower").classList.toggle("solo", !showPortal);
+  document.getElementById("portal").innerHTML = showPortal
+    ? row(PORTAL, '<div class="inside">'+PORTAL.inside.map(function(n){ return '<span>'+esc(n)+'</span>'; }).join("")+'</div>') : "";
+  document.getElementById("help").innerHTML = HELP.filter(can).map(function(x){ return row(x); }).join("");
+}
+
+/* ===== 開く ===== */
+function kintaiUrl(){
+  if (ROLE === "boss") return URL_KINTAI;                       // 社長＝いつもどおり（管理者モードで使う）
+  var me = ROLE === "me" ? "中野　聖子" : ME;
+  return me ? URL_KINTAI + "?me=" + encodeURIComponent(me) : URL_KINTAI;   // 人ごとの入口なら、その人で固定
+}
+function openItem(id){
+  var x = find(id); if (!x) return;
+  if (x.open) x = find(x.open);
+  if (x.pc){ alert("「名刺作成」はパソコンのデスクトップのランチャーから開いてください。"); return; }
+  if (x.app === "kintai"){
+    go(kintaiUrl(), "勤怠管理"); return;
+  }
+  go(x.url, x.do.replace(/を開く$/, ""));
+}
+/* ===== アプリを開く（速く感じるように）=====
+   ・入口の上に重ねて開く。「もどる」は隠すだけ → 一瞬で入口に戻れる
+   ・一度開いたアプリは残しておき、また押すと一瞬で出る（5分たったら最新に読み直す）
+   ・よく使うアプリは、入口を開いている間に裏で先に読み込んでおく */
+var FR = {}, FRESH = 5*60*1000, active = null;
+function frame(url, show){
+  var f = FR[url];
+  if (f && Date.now() - f.t > FRESH && !show) return f;          // 裏の読み込みでは作り直さない
+  if (f && Date.now() - f.t > FRESH){ f.el.remove(); f = null; }   // 古くなったら最新に
+  if (!f){
+    var el = document.createElement("iframe");
+    el.setAttribute("allow", "camera; microphone; clipboard-read; clipboard-write; geolocation");
+    f = FR[url] = { el:el, t:Date.now(), loaded:false };
+    el.onload = function(){ f.loaded = true; if (active === f) document.getElementById("vLoad").classList.add("hidden"); };
+    el.src = url;
+    document.getElementById("vBody").appendChild(el);
+  }
+  return f;
+}
+function go(url, title){
+  var f = frame(url, true);
+  Object.keys(FR).forEach(function(k){ FR[k].el.classList.toggle("on", FR[k] === f); });
+  active = f;
+  document.getElementById("vTtl").textContent = title || "";
+  document.getElementById("vLoad").classList.toggle("hidden", f.loaded);
+  document.getElementById("viewer").classList.remove("hidden");
+  history.pushState({ app:1 }, "");
+}
+function closeViewer(){
+  document.getElementById("viewer").classList.add("hidden");
+  active = null; greet();
+}
+document.getElementById("vBack").onclick = function(){ if (history.state && history.state.app) history.back(); else closeViewer(); };
+window.addEventListener("popstate", function(){ if (!document.getElementById("viewer").classList.contains("hidden")) closeViewer(); });
+function preload(){   // よく使う勤怠管理と予定を先に読み込む
+  [kintaiUrl(), find("calendar").url].forEach(function(u){ frame(u, false); });
+}
+setTimeout(preload, 1200);
+document.addEventListener("click", function(e){
+  var el = e.target.closest("[data-id]"); if (!el) return;
+  if (el.closest("#todo")) store("bf_thanks", String(Date.now()));   // 用事をすませて戻ったら「ありがとう」
+  openItem(el.getAttribute("data-id"));
+});
+document.getElementById("roleSel").addEventListener("change", function(){   // デモ用：だれの入口かを切り替え
+  var v = this.value.split("|"); ROLE = v[0]; ME = v[1] || ""; store("bf_role", ROLE); render(); greet(); preload(); q.value = ""; q.dispatchEvent(new Event("input")); });
+
+/* ===== さがす ===== */
+var q = document.getElementById("q");
+q.addEventListener("input", function(){
+  var v = q.value.trim().toLowerCase();
+  document.getElementById("resultBox").classList.toggle("hidden", !v);
+  document.getElementById("homeBox").classList.toggle("hidden", !!v);
+  if (!v) return;
+  var words = v.split(/\s+/);
+  function hit(x){
+    var hay = (x.do+" "+x.path+" "+x.kw).toLowerCase();
+    return words.some(function(w){ return hay.indexOf(w) >= 0; });
+  }
+  var tips = TIPS.filter(can).filter(hit);
+  var covered = tips.map(function(x){ return x.open; });   // 具体的な案内が出たアプリは、ふつうのボタンを重ねて出さない
+  var out = tips.concat(DAILY.concat(HELP).filter(can).filter(hit).filter(function(x){ return covered.indexOf(x.id) < 0; }))
+    .map(function(x){ return row(x); });
+  if (can(PORTAL) && hit(PORTAL)){
+    function pick(exact){ return PORTAL.where.filter(function(w){ var keys = w[0].split(" ");
+      return words.some(function(s){ return keys.some(function(k){ return exact ? k === s : k.indexOf(s) >= 0; }); }); })[0]; }
+    var w = pick(true) || pick(false);   // ぴったり合う言葉を優先
+    var p = Object.assign({}, PORTAL, w ? { do:w[2], lock:w[3], path:"社内ポータル → <b>「"+w[1]+"」のカード</b>を押す" } : {});
+    out.push(row(p));
+  }
+  document.getElementById("results").innerHTML = out.length ? out.join("")
+    : '<div class="noresult">「'+esc(q.value)+'」に合うものが見つかりませんでした。<br>別の言葉（例：有給、出勤、名刺）で入れるか、中野まで声をかけてください。</div>';
+});
+
+/* ===== 🐶ひとこと（開いたその時の状況で言葉を変える）=====
+   1. 「今日やること」をすませて戻ってきた直後 → ありがとうございます！
+   2. その日はじめて朝に開いた                 → おはようございます！今日もがんばりましょう
+   3. 今日やることが残っている                 → 確認よろしくお願いします
+   4. それ以外は時間帯                         → 日中：おつかれさまです！／夕方：今日もおつかれさま */
+function greet(){
+  var now = new Date(), h = now.getHours(), today = now.toDateString(), msg;
+  var thanks = +store("bf_thanks") || 0;
+  var firstToday = store("bf_lastday") !== today;
+  var pending = document.querySelectorAll("#todo .row").length;
+  if (thanks && now.getTime() - thanks < 3*60*60*1000){ msg = "ありがとうございます！"; store("bf_thanks", ""); }
+  else if (firstToday && h < 11)                       msg = "おはようございます！今日もがんばりましょう";
+  else if (pending)                                    msg = "確認よろしくお願いします";
+  else if (h < 17)                                     msg = "おつかれさまです！";
+  else                                                 msg = "今日もおつかれさま";
+  store("bf_lastday", today);
+  document.getElementById("greet").innerHTML = '<span class="dog">🐶</span>「' + msg + '」';
+}
+window.addEventListener("pageshow", function(e){ if (e.persisted) greet(); });   // 「もどる」で戻った時も言葉を変える
+
+/* ===== 日付・時計 ===== */function tick(){   // 例：2026年10月08日（木） PM 16:09
+  var d = new Date(), h = d.getHours();
+  document.getElementById("dt").textContent = d.getFullYear()+"年"+pad2(d.getMonth()+1)+"月"+pad2(d.getDate())+"日（"+"日月火水木金土".charAt(d.getDay())+"）";
+  document.getElementById("tm").textContent = (h < 12 ? "AM " : "PM ") + pad2(h) + ":" + pad2(d.getMinutes());
+}
+function pad2(n){ return ("0"+n).slice(-2); }
+tick(); setInterval(tick, 10000);
+render();
+greet();
+</script>
+</body>
+</html>

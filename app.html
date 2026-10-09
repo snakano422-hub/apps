@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#1b2942">
+<link rel="icon" href="hub.png">
+<title>ブライトエフ電気</title>
+<style>
+  /* 入口(hub.html)から開いたアプリを、上に「一覧へもどる」を付けて表示する入れ物 */
+  html,body{margin:0;height:100%;background:#1b2942;overflow:hidden;font-family:"Hiragino Kaku Gothic ProN","Yu Gothic UI","Meiryo",sans-serif;}
+  .bar{position:fixed;top:0;left:0;right:0;height:calc(46px + env(safe-area-inset-top));padding-top:env(safe-area-inset-top);
+    display:flex;align-items:center;gap:10px;padding-left:8px;padding-right:12px;box-sizing:border-box;
+    background:#1b2942;border-bottom:2px solid #c8a35b;color:#fff;z-index:2;}
+  .back{display:flex;align-items:center;gap:4px;background:#c8a35b;color:#1b2942;border:0;border-radius:10px;
+    height:34px;padding:0 12px 0 8px;font-size:15px;font-weight:900;cursor:pointer;font-family:inherit;white-space:nowrap;}
+  .back span{font-size:20px;line-height:1;margin-top:-2px;}
+  .ttl{font-size:15px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  iframe{position:fixed;left:0;right:0;bottom:0;top:calc(46px + env(safe-area-inset-top));width:100%;height:calc(100% - 46px - env(safe-area-inset-top));border:0;background:#fff;}
+</style>
+</head>
+<body>
+  <div class="bar">
+    <button class="back" id="back"><span>‹</span>一覧へもどる</button>
+    <div class="ttl" id="ttl"></div>
+  </div>
+  <iframe id="frame" allow="camera; microphone; clipboard-read; clipboard-write; geolocation" allowfullscreen></iframe>
+<script>
+  var p = new URLSearchParams(location.search);
+  var u = p.get("u") || "hub.html";
+  document.getElementById("ttl").textContent = p.get("t") || "";
+  document.title = (p.get("t") || "アプリ") + "｜ブライトエフ電気";
+  document.getElementById("frame").src = u;
+  document.getElementById("back").onclick = function(){
+    // 入口から来たときは戻る（入口の状態のまま）。直接開いたときは入口へ
+    if (document.referrer && /hub\.html/.test(document.referrer) && history.length > 1) history.back();
+    else location.href = "hub.html";
+  };
+</script>
+</body>
+</html>
