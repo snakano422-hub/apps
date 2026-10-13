@@ -154,12 +154,6 @@
   </div>
 
   <div id="homeBox">
-    <section class="today">
-      <h2>今日やること <span class="cnt" id="todoCnt"></span></h2>
-      <p class="lead">今すぐやること。「やる」を押すと開きます。</p>
-      <div class="rows" id="todo"></div>
-    </section>
-
     <section class="always">
       <h2>いつも使う</h2>
       <p class="lead">いつでも使えるアプリです。</p>
@@ -276,13 +270,6 @@ var ALL = DAILY.concat([PORTAL]).concat(HELP).concat(TIPS);
 function find(id){ return ALL.filter(function(x){ return x.id === id; })[0]; }
 
 function render(){
-  var todo = TODO.filter(can).map(function(t){ var target = find(t.go); return Object.assign({}, t, { id:t.go, app:target.app, ico:target.ico, color:target.color, lock:false }); });
-  var order = { red:0, amber:1, green:2 };
-  todo.sort(function(a,b){ return order[a.lv]-order[b.lv]; });
-  document.getElementById("todo").innerHTML = todo.length ? todo.map(function(t){ return row(t); }).join("")
-    : '<div class="none">今日やることは、今のところありません 👍</div>';
-  document.getElementById("todoCnt").textContent = todo.length ? todo.length+"件" : "";
-  document.getElementById("todoCnt").classList.toggle("hidden", !todo.length);
   document.getElementById("daily").innerHTML = DAILY.filter(can).map(function(x){ return row(x); }).join("");
   var showPortal = can(PORTAL);
   document.getElementById("portalSec").classList.toggle("hidden", !showPortal);
