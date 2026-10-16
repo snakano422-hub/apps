@@ -204,12 +204,8 @@ var DAILY = [
   /* 予定：各自のGoogleカレンダーを1画面にまとめたアプリ（2026-10-09 本番公開） */
   { id:"calendar", who:"all", ico:"📅", color:"#1a73e8", do:"予定", path:"みんなの予定を見る・入れる",
     url:"https://script.google.com/macros/s/AKfycbyX0YoTkRiNn8Hwr73K_9K3Ax3lqfhiGXHwyfOeFDGpJRKN2KHFQkpoY5porWbZzKAYqA/exec", kw:"予定 カレンダー スケジュール 日程 訪問 打ち合わせ 会議 休日 いつ" },
-  { id:"meishi",  who:"all", app:"meishi", do:"名刺管理", path:"名刺をさがす・登録する", url:"https://script.google.com/macros/s/AKfycbyh3vC9phrHOBHuMP8OQxy3Xw519VKpPKkFbMCqSG2Q27NPy_d3Wa2OjFMRJEo12U3KDw/exec",
-    kw:"名刺 連絡先 電話番号 取引先 お客さん 登録" },
   { id:"anzen",   who:"all", app:"anzen",  do:"安全書類・協力会社", path:"現場の安全書類・協力会社の情報", url:"https://script.google.com/macros/s/AKfycbxIBr7mxIg9jvJ9M16b6SfliOslS3qy8u1BcLE_oU4wtuZdSASDG2mGJjIjG4MiO2twRw/exec",
-    kw:"安全書類 グリーンファイル 協力会社 作業員 下請け 保険 現場" },
-  { id:"mcard",   who:"me",  ico:"🪪", color:"#2c406c", do:"名刺作成", path:"新しい人の名刺をつくる", pc:true,
-    kw:"名刺 作成 つくる 印刷" }
+    kw:"安全書類 グリーンファイル 協力会社 作業員 下請け 保険 現場" }
 ];
 
 /* 「さがす」で入れた時だけ出す案内（開くアプリは open のもの）*/
@@ -231,9 +227,6 @@ var PORTAL = { id:"portal", who:"boss", app:"portal", do:"社内ポータルを�
           ["社長","社長","社長個人の書類を見る",true] ] };
 
 var HELP = [
-  /* 業務状況管理：あまり使っていないので「その他」へ（2026-10-09）*/
-  { id:"gyomu", who:"all", app:"gyomu", do:"業務状況管理", path:"仕事の連絡・進み具合", url:"https://script.google.com/macros/s/AKfycbzzZKeduauBYCEoxf0ZcBKviH0e1n4efP3vGvWfmkJUxAVEnXq5WSIBVEWf6ug55YdR/exec",
-    kw:"業務 仕事 進捗 連絡 タスク やること 現場 チャット 報告" },
   { id:"memo",  who:"boss", app:"memo",  do:"社内ポータルの使い方を読む", path:"使い方メモ", url:"memo.html", kw:"使い方 説明 ヘルプ マニュアル ポータル" },
   { id:"guide", who:"all",  app:"guide", do:"スマホにアプリを入れる",     path:"スマホへの入れ方", url:"index.html", kw:"スマホ 設定 入れ方 ホーム画面 iPhone Android" }
 ];
