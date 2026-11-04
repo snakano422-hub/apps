@@ -290,7 +290,7 @@ function openItem(id){
 /* ===== アプリを開く（速く感じるように）=====
    ・入口の上に重ねて開く。「もどる」は隠すだけ → 一瞬で入口に戻れる
    ・一度開いたアプリは残しておき、また押すと一瞬で出る（5分たったら最新に読み直す）
-   ・よく使うアプリは、入口を開いている間に裏で先に読み込んでおく */
+   ・読み込みは、ボタンを押したアプリだけ（トップ画面では自動で読み込まない）*/
 var FR = {}, FRESH = 5*60*1000, active = null;
 function frame(url, show){
   var f = FR[url];
@@ -312,11 +312,14 @@ function go(url, title){
   active = f;
   document.getElementById("vTtl").textContent = title || "";
   var ld = document.getElementById("vLoad");
-  if (!f.shown){   // 初めて見せる時は、中身が出るまで少し「開いています…」を重ねる
-    f.shown = true; ld.classList.remove("hidden");
-    var hideLater = function(){ setTimeout(function(){ if (active === f) ld.classList.add("hidden"); }, 2500); };
-    if (f.loaded) hideLater(); else f.el.addEventListener("load", hideLater, { once:true });
-  } else ld.classList.toggle("hidden", f.loaded);
+  if (f.loaded){                       // すでに読み込み済み → すぐ表示（ローディングなし）
+    ld.classList.add("hidden");
+  } else {                             // まだ → 読み込み完了まで「開いています…」を出す
+    ld.classList.remove("hidden");
+    f.el.addEventListener("load", function(){
+      if (active === f) ld.classList.add("hidden");   // いま表示中のアプリの時だけ消す（別アプリに切り替えた後は消さない）
+    }, { once:true });
+  }
   document.getElementById("viewer").classList.remove("hidden");
   history.pushState({ app:1 }, "");
 }
@@ -326,10 +329,7 @@ function closeViewer(){
 }
 document.getElementById("vBack").onclick = function(){ if (history.state && history.state.app) history.back(); else closeViewer(); };
 window.addEventListener("popstate", function(){ if (!document.getElementById("viewer").classList.contains("hidden")) closeViewer(); });
-function preload(){   // よく使う勤怠管理と予定を先に読み込む
-  [kintaiUrl(), find("calendar").url].forEach(function(u){ frame(u, false); });
-}
-setTimeout(preload, 1200);
+/* 自動の先読みはしない：トップ画面を開いても勝手にアプリを読み込まない（ボタンを押したアプリだけ読み込む）*/
 document.addEventListener("click", function(e){
   var el = e.target.closest("[data-id]"); if (!el) return;
   if (el.closest("#todo")) store("bf_thanks", String(Date.now()));   // 用事をすませて戻ったら「ありがとう」
