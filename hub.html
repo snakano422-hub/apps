@@ -312,13 +312,14 @@ function go(url, title){
   active = f;
   document.getElementById("vTtl").textContent = title || "";
   var ld = document.getElementById("vLoad");
-  if (f.loaded){                       // すでに読み込み済み → すぐ表示（ローディングなし）
+  if (f.shown && f.loaded){            // 一度開いたアプリの再表示 → 中身も描画済みなので即表示
     ld.classList.add("hidden");
-  } else {                             // まだ → 読み込み完了まで「開いています…」を出す
+  } else {                             // 初めて表示、またはまだ読込中
+    f.shown = true;
     ld.classList.remove("hidden");
-    f.el.addEventListener("load", function(){
-      if (active === f) ld.classList.add("hidden");   // いま表示中のアプリの時だけ消す（別アプリに切り替えた後は消さない）
-    }, { once:true });
+    var hideLoad = function(){ if (active === f) ld.classList.add("hidden"); };   // いま表示中のアプリの時だけ消す（別アプリに切り替えた後は消さない）
+    if (f.loaded) setTimeout(hideLoad, 800);          // 先読み済み：中身が描画される一瞬だけ重ねて白画面を防ぐ
+    else f.el.addEventListener("load", hideLoad, { once:true });   // 未読込：読み込み完了で消す
   }
   document.getElementById("viewer").classList.remove("hidden");
   history.pushState({ app:1 }, "");
@@ -329,7 +330,9 @@ function closeViewer(){
 }
 document.getElementById("vBack").onclick = function(){ if (history.state && history.state.app) history.back(); else closeViewer(); };
 window.addEventListener("popstate", function(){ if (!document.getElementById("viewer").classList.contains("hidden")) closeViewer(); });
-/* 自動の先読みはしない：トップ画面を開いても勝手にアプリを読み込まない（ボタンを押したアプリだけ読み込む）*/
+/* よく使う「勤怠」だけ、入口を開いた少しあとに裏で先読み（タップで一瞬に）。予定ほかは押した時だけ読み込む。*/
+function preloadKintai(){ frame(kintaiUrl(), false); }
+setTimeout(preloadKintai, 1200);
 document.addEventListener("click", function(e){
   var el = e.target.closest("[data-id]"); if (!el) return;
   if (el.closest("#todo")) store("bf_thanks", String(Date.now()));   // 用事をすませて戻ったら「ありがとう」
