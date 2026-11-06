@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<link rel="preconnect" href="https://script.google.com"><link rel="preconnect" href="https://script.googleusercontent.com">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>予定</title>
+<style>
+  :root{ --navy:#1b2942; --navy2:#2a3a5c; --gold:#c8a35b; --bg:#f4f6fa; --ink:#1b2942; --muted:#6b7386; --line:#e2e7f0; --sun:#c0492f; --sat:#2a5bb8; }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:"Hiragino Kaku Gothic ProN","Yu Gothic UI","Meiryo",sans-serif;-webkit-text-size-adjust:100%;}
+  button{font-family:inherit;}
+
+  header{background:linear-gradient(160deg,var(--navy2),var(--navy));color:#fff;border-bottom:3px solid var(--gold);padding:10px 14px;}
+  .hrow{display:flex;align-items:center;gap:8px;max-width:980px;margin:0 auto;}
+  header h1{font-size:17px;margin:0;font-weight:800;}
+  .nav{margin-left:auto;display:flex;align-items:center;gap:6px;}
+  .nav button{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.3);color:#fff;border-radius:10px;height:34px;min-width:34px;font-size:15px;font-weight:700;cursor:pointer;padding:0 10px;}
+  .ym{font-size:17px;font-weight:800;min-width:96px;text-align:center;}
+
+  main{max-width:980px;margin:0 auto;padding:12px 12px 100px;}
+
+  /* 人の絞り込み */
+  .people{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;}
+  .pchip{display:flex;align-items:center;gap:6px;background:#fff;border:1px solid var(--line);border-radius:999px;padding:5px 12px 5px 8px;font-size:13.5px;font-weight:700;cursor:pointer;}
+  .pchip .sw{width:12px;height:12px;border-radius:50%;}
+  .pchip.off{opacity:.38;}
+  .pchip.ng{border-style:dashed;cursor:default;}
+  .pchip.ng small{font-weight:400;color:var(--muted);}
+  .phint{font-size:12px;color:var(--muted);margin:-4px 2px 10px;}
+
+  /* 月のマス */
+  .cal{background:#fff;border:1px solid var(--line);border-radius:14px;overflow:hidden;}
+  .wk,.grid{display:grid;grid-template-columns:repeat(7,1fr);}
+  .wk div{text-align:center;font-size:12px;font-weight:700;padding:6px 0;background:#f7f8fb;border-bottom:1px solid var(--line);color:var(--muted);}
+  .wk div:first-child{color:var(--sun);} .wk div:last-child{color:var(--sat);}
+  .day{min-height:92px;border-right:1px solid var(--line);border-bottom:1px solid var(--line);padding:4px;cursor:pointer;position:relative;overflow:hidden;}
+  .day:nth-child(7n){border-right:0;}
+  .day.out{background:#fafbfc;}
+  .day.out .dn{opacity:.4;}
+  .day.sel{box-shadow:inset 0 0 0 2px #9db4dc;background:#f5f8fe;}
+  .dn{font-size:13px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;}
+  .day.sun .dn,.day.hol .dn{color:var(--sun);} .day.sat .dn{color:var(--sat);}
+  .day.today .dn{background:var(--navy);color:#fff;}
+  .hname{font-size:9.5px;color:var(--sun);margin-left:2px;}
+  .ev{display:block;font-size:11px;line-height:1.35;border-radius:5px;padding:1px 4px;margin-top:2px;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .more{font-size:10.5px;color:var(--muted);margin-top:1px;}
+
+  /* その日の予定 */
+  .dayttl{display:flex;align-items:center;gap:8px;margin:18px 2px 8px;}
+  .dayttl h2{font-size:17px;margin:0;}
+  .dayttl .hol{font-size:12px;color:var(--sun);font-weight:700;}
+  .addday{margin-left:auto;background:var(--navy);color:#fff;border:0;border-radius:10px;padding:8px 12px;font-size:14px;font-weight:800;cursor:pointer;}
+  .list{display:flex;flex-direction:column;gap:8px;}
+  .item{display:flex;gap:10px;background:#fff;border:1px solid var(--line);border-left:6px solid #999;border-radius:12px;padding:10px 12px;cursor:pointer;}
+  .item .tm{font-size:13px;font-weight:800;min-width:86px;color:var(--ink);}
+  .item .tt{font-size:15px;font-weight:800;}
+  .item .sub{font-size:12.5px;color:var(--muted);margin-top:2px;}
+  .item .who{font-size:12px;font-weight:700;}
+  .empty{background:#fff;border:1px dashed #c9d3e3;border-radius:12px;padding:14px;font-size:14px;color:var(--muted);text-align:center;}
+
+  /* 大きい＋ボタン */
+  .fab{position:fixed;right:16px;bottom:18px;background:var(--gold);color:#1b2942;border:0;border-radius:999px;padding:14px 20px;font-size:16px;font-weight:900;
+    box-shadow:0 8px 20px rgba(27,41,66,.25);cursor:pointer;z-index:5;}
+
+  /* 入力シート */
+  .bg{position:fixed;inset:0;background:rgba(19,32,51,.5);z-index:10;display:flex;align-items:flex-end;justify-content:center;}
+  .sheet{background:#fff;width:100%;max-width:520px;border-radius:18px 18px 0 0;padding:16px 16px 22px;max-height:92vh;overflow:auto;}
+  @media (min-width:700px){ .bg{align-items:center;} .sheet{border-radius:18px;} }
+  .sheet h3{margin:0 0 12px;font-size:18px;}
+  .f{margin-bottom:12px;}
+  .f label{display:block;font-size:13px;font-weight:700;margin-bottom:4px;}
+  .f input,.f select,.f textarea{width:100%;font-size:16px;padding:10px 12px;border:1px solid #cfd7e4;border-radius:10px;font-family:inherit;color:var(--ink);background:#fff;}
+  .f textarea{min-height:64px;}
+  .two{display:flex;gap:8px;} .two .f{flex:1;}
+  .who-btns{display:flex;flex-wrap:wrap;gap:6px;}
+  .who-btns button{border:2px solid var(--line);background:#fff;border-radius:999px;padding:7px 12px;font-size:14px;font-weight:700;cursor:pointer;}
+  .who-btns button.on{color:#fff;}
+  .who-btns button:disabled{opacity:.35;cursor:not-allowed;}
+  .chk{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:700;margin-bottom:12px;}
+  .chk input{width:20px;height:20px;}
+  .acts{display:flex;gap:8px;margin-top:6px;}
+  .acts button{flex:1;border:0;border-radius:12px;padding:13px;font-size:16px;font-weight:800;cursor:pointer;}
+  .save{background:var(--navy);color:#fff;} .cancel{background:#eef1f6;color:var(--ink);} .del{background:#fbe9e5;color:#c0492f;flex:0 0 auto !important;padding:13px 16px !important;}
+  .note{font-size:12px;color:var(--muted);margin:-4px 0 10px;}
+  .err{color:#c0492f;font-size:13px;font-weight:700;margin-bottom:8px;}
+
+  .toast{position:fixed;left:50%;bottom:86px;transform:translateX(-50%);background:#1b2942;color:#fff;border-radius:999px;padding:10px 18px;font-size:14px;z-index:20;opacity:0;transition:opacity .2s;pointer-events:none;}
+  .toast.show{opacity:1;}
+  .loading{position:fixed;top:64px;left:50%;transform:translateX(-50%);background:#fff;border:1px solid var(--line);border-radius:999px;padding:6px 14px;font-size:13px;color:var(--muted);z-index:4;}
+  .hidden{display:none !important;}
+
+  @media (max-width:600px){
+    .day{min-height:64px;padding:2px;}
+    .ev{font-size:0;height:6px;padding:0;margin-top:2px;border-radius:3px;}  /* スマホは色の線だけ */
+    .hname{display:none;}
+    .more{font-size:9.5px;}
+    .ym{min-width:80px;font-size:15px;}
+    header h1{font-size:15px;}
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="hrow">
+    <h1>📅 予定</h1>
+    <div class="nav">
+      <button id="prev" aria-label="前の月">‹</button>
+      <div class="ym" id="ym"></div>
+      <button id="next" aria-label="次の月">›</button>
+      <button id="todayBtn">今日</button>
+    </div>
+  </div>
+</header>
+
+<main>
+  <div class="people" id="people"></div>
+  <p class="phint">名前を押すと、その人の予定を出したり消したりできます。</p>
+
+  <div class="cal">
+    <div class="wk"><div>日</div><div>月</div><div>火</div><div>水</div><div>木</div><div>金</div><div>土</div></div>
+    <div class="grid" id="grid"></div>
+  </div>
+
+  <div class="dayttl"><h2 id="dayTitle"></h2><span class="hol" id="dayHol"></span><button class="addday" id="addDay">＋この日に入れる</button></div>
+  <div class="list" id="list"></div>
+</main>
+
+<button class="fab" id="fab">＋ 予定を入れる</button>
+<div class="loading hidden" id="loading">読み込み中…</div>
+<div class="toast" id="toast"></div>
+
+<div class="bg hidden" id="bg">
+  <div class="sheet">
+    <h3 id="fTitle">予定を入れる</h3>
+    <div class="err hidden" id="fErr"></div>
+    <div class="f"><label>だれの予定？（複数選べます）</label><div class="who-btns" id="fWho"></div></div>
+    <div class="f"><label>件名（なにをする？）</label><input id="fName" placeholder="例：〇〇様邸 現地調査"></div>
+    <div class="f"><label>日にち</label><input id="fDate" type="date"></div>
+    <label class="chk"><input id="fAll" type="checkbox"> 終日（時間を決めない）</label>
+    <div class="two" id="fTimes">
+      <div class="f"><label>はじまり</label><input id="fStart" type="time" step="900"></div>
+      <div class="f"><label>おわり</label><input id="fEnd" type="time" step="900"></div>
+    </div>
+    <div class="f"><label>🔔 通知（スマホに知らせる）</label><select id="fRemind"></select></div>
+    <div class="f"><label>場所（なくてもOK）</label><input id="fPlace" placeholder="例：大阪市城東区〇〇"></div>
+    <div class="f"><label>メモ（なくてもOK）</label><textarea id="fNote"></textarea></div>
+    <p class="note">1人だけ選ぶ → その人のカレンダー。2人以上 → みんなで見る「共有予定」に入ります。</p>
+    <div class="acts">
+      <button class="del hidden" id="fDel">消す</button>
+      <button class="cancel" id="fCancel">やめる</button>
+      <button class="save" id="fSave">保存する</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// 予定 高速版: google.script.run の代わり (画面のスクリプトより先に読む)
+// ============================================================
+(function(){
+  var API_URL = 'https://script.google.com/macros/s/AKfycbyX0YoTkRiNn8Hwr73K_9K3Ax3lqfhiGXHwyfOeFDGpJRKN2KHFQkpoY5porWbZzKAYqA/exec';
+  var CFG_KEY = 'yt_fast_cfg';
+  var WRITES = { saveEvent:true, deleteEvent:true };
+
+  function readJson(k){ try{ return JSON.parse(localStorage.getItem(k)); }catch(e){ return null; } }
+  function writeJson(k,v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} }
+
+  function fetchApi(fn, args){
+    var ctrl = window.AbortController ? new AbortController() : null;
+    var timer = ctrl ? setTimeout(function(){ ctrl.abort(); }, 30000) : null;
+    return fetch(API_URL, {
+      method:'POST', redirect:'follow',
+      headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body:JSON.stringify({fn:fn, args:args}),
+      keepalive: !!WRITES[fn],
+      signal: ctrl ? ctrl.signal : undefined
+    }).then(function(r){
+      if(timer) clearTimeout(timer);
+      if(!r.ok) throw new Error('通信に失敗しました ('+r.status+')');
+      return r.json();
+    }).then(function(j){
+      if(!j.ok) throw new Error(j.error||'処理に失敗しました');
+      return j.result;
+    }, function(e){
+      if(timer) clearTimeout(timer);
+      throw e;
+    });
+  }
+  function transport(fn, args){ return (window.YT_TRANSPORT||fetchApi)(fn, args); }
+
+  var YT = window.YT_FAST = { pendingWrites:0, writeSeq:0, onWritten:null, onConfig:null };
+
+  function finishWrite(){
+    YT.pendingWrites--;
+    setTimeout(function(){ if(YT.onWritten) YT.onWritten(); }, 0);   // 画面側の処理が終わってから呼ぶ
+  }
+
+  function call(fn, args){
+    if(fn==='getConfig'){
+      var saved = readJson(CFG_KEY);
+      var net = transport(fn,args).then(function(c){ writeJson(CFG_KEY,c); return c; });
+      if(saved && saved.people && saved.people.length){
+        net.then(function(c){ if(YT.onConfig) YT.onConfig(c); }, function(){});
+        return Promise.resolve(saved);
+      }
+      return net;
+    }
+    if(WRITES[fn]){
+      YT.pendingWrites++; YT.writeSeq++;
+      return transport(fn,args).then(function(r){ finishWrite(); return r; }, function(e){ finishWrite(); throw e; });
+    }
+    return transport(fn,args);
+  }
+
+  function Runner(ok, fail){ this._ok=ok; this._fail=fail; }
+  Runner.prototype.withSuccessHandler = function(f){ return new Runner(f,this._fail); };
+  Runner.prototype.withFailureHandler = function(f){ return new Runner(this._ok,f); };
+  ['getConfig','getEvents','saveEvent','deleteEvent'].forEach(function(name){
+    Runner.prototype[name] = function(){
+      var ok=this._ok, fail=this._fail, args=Array.prototype.slice.call(arguments);
+      call(name,args).then(function(r){ if(ok) ok(r); }, function(e){ if(fail) fail(e); });
+    };
+  });
+  window.google = { script: { run: new Runner() } };
+})();
+
+</script>
+<script>
+var S = { people:[], events:[], holidays:{}, hidden:{}, y:0, m:0, sel:"", editing:null, who:"", formWho:[] };
+function store(k,v){ try{ if(v===undefined) return localStorage.getItem(k)||""; localStorage.setItem(k,v);}catch(e){ return ""; } }
+function pad(n){ return ("0"+n).slice(-2); }
+function ymd(d){ return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate()); }
+function esc(s){ return String(s||"").replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];}); }
+/* 色の明るさを見て、上に乗せる文字の色を決める（薄い色なら紺、濃い色なら白）*/
+function lum(c){ var n=parseInt(c.slice(1),16); return (0.299*(n>>16&255)+0.587*(n>>8&255)+0.114*(n&255))/255; }
+function fg(c){ return lum(c) > 0.62 ? "#1b2942" : "#fff"; }
+function deep(c){ var n=parseInt(c.slice(1),16), k=lum(c)>0.62?0.62:1;   // 薄い色の名前の文字は少し濃く
+  return "rgb("+Math.round((n>>16&255)*k)+","+Math.round((n>>8&255)*k)+","+Math.round((n&255)*k)+")"; }
+function P(key){ if(key==="shared") return {name:"共有", color:"#8e44ad"}; return S.people.filter(function(p){return p.key===key;})[0] || {name:"?",color:"#999"}; }
+function toast(t){ var e=document.getElementById("toast"); e.textContent=t; e.classList.add("show"); setTimeout(function(){e.classList.remove("show");},2200); }
+function busy(on){ document.getElementById("loading").classList.toggle("hidden",!on); }
+function run(fn){ var args=[].slice.call(arguments,1); return new Promise(function(ok,ng){ var r=google.script.run.withSuccessHandler(ok).withFailureHandler(function(e){ng(e);}); r[fn].apply(r,args); }); }
+
+/* ---------- 起動 ---------- */
+run("getConfig").then(function(c){
+  S.people = c.people;
+  try { S.hidden = JSON.parse(store("yt_hidden")||"{}"); } catch(e){}
+  S.who = store("yt_who");
+  var t = new Date(); S.y=t.getFullYear(); S.m=t.getMonth(); S.sel=ymd(t);
+  renderPeople(); load();
+}).catch(function(e){ alert("読み込みに失敗しました："+(e.message||e)); });
+
+function load(){
+  var first = new Date(S.y,S.m,1), from = new Date(S.y,S.m,1-first.getDay()), to = new Date(from); to.setDate(to.getDate()+42);
+  busy(true);
+  run("getEvents", ymd(from), ymd(to)).then(function(r){
+    S.events = r.events; S.holidays = {}; r.holidays.forEach(function(h){ S.holidays[h.date]=h.name; });
+    busy(false); renderCal(); renderDay();
+  }).catch(function(e){ busy(false); alert("予定を読めませんでした："+(e.message||e)); });
+}
+
+/* ---------- 人 ---------- */
+function renderPeople(){
+  document.getElementById("people").innerHTML = S.people.map(function(p){
+    if (!p.ready) return '<span class="pchip ng" title="カレンダーがまだつながっていません"><span class="sw" style="background:'+p.color+'"></span>'+esc(p.name)+' <small>（未設定）</small></span>';
+    return '<span class="pchip'+(S.hidden[p.key]?' off':'')+'" data-p="'+p.key+'"><span class="sw" style="background:'+p.color+'"></span>'+esc(p.name)+'</span>';
+  }).join("");
+}
+document.getElementById("people").addEventListener("click",function(e){
+  var c=e.target.closest("[data-p]"); if(!c) return; var k=c.getAttribute("data-p");
+  S.hidden[k]=!S.hidden[k]; store("yt_hidden",JSON.stringify(S.hidden)); renderPeople(); renderCal(); renderDay();
+});
+function shown(){ return S.events.filter(function(e){ return !S.hidden[e.person]; }); }
+function onDay(d){ return shown().filter(function(e){ return e.date<=d && d<=e.endDate; })
+  .sort(function(a,b){ return (a.allDay?"":"1"+a.start).localeCompare(b.allDay?"":"1"+b.start); }); }
+
+/* ---------- 月 ---------- */
+function renderCal(){
+  document.getElementById("ym").textContent = S.y+"年"+(S.m+1)+"月";
+  var first=new Date(S.y,S.m,1), d=new Date(S.y,S.m,1-first.getDay()), today=ymd(new Date()), h="";
+  for (var i=0;i<42;i++){
+    var k=ymd(d), evs=onDay(k), cls="day";
+    if (d.getMonth()!==S.m) cls+=" out";
+    if (d.getDay()===0) cls+=" sun"; if (d.getDay()===6) cls+=" sat";
+    if (S.holidays[k]) cls+=" hol"; if (k===today) cls+=" today"; if (k===S.sel) cls+=" sel";
+    h+='<div class="'+cls+'" data-d="'+k+'"><span class="dn">'+d.getDate()+'</span>'+(S.holidays[k]?'<span class="hname">'+esc(S.holidays[k])+'</span>':'');
+    evs.slice(0,3).forEach(function(e){ h+='<span class="ev" style="background:'+P(e.person).color+';color:'+fg(P(e.person).color)+'">'+(e.person==="shared"?"👥 ":"")+(e.allDay?"":e.start+" ")+esc(e.title)+'</span>'; });
+    if (evs.length>3) h+='<div class="more">ほか'+(evs.length-3)+'件</div>';
+    h+='</div>'; d.setDate(d.getDate()+1);
+  }
+  document.getElementById("grid").innerHTML=h;
+}
+document.getElementById("grid").addEventListener("click",function(e){
+  var c=e.target.closest("[data-d]"); if(!c) return; S.sel=c.getAttribute("data-d");
+  var d=new Date(S.sel.replace(/-/g,"/")); if (d.getMonth()!==S.m){ S.y=d.getFullYear(); S.m=d.getMonth(); load(); } else { renderCal(); renderDay(); }
+  document.getElementById("dayTitle").scrollIntoView({behavior:"smooth",block:"start"});
+});
+function move(n){ var d=new Date(S.y,S.m+n,1); S.y=d.getFullYear(); S.m=d.getMonth(); S.sel=ymd(d); load(); }
+document.getElementById("prev").onclick=function(){ move(-1); };
+document.getElementById("next").onclick=function(){ move(1); };
+document.getElementById("todayBtn").onclick=function(){ var t=new Date(); S.y=t.getFullYear(); S.m=t.getMonth(); S.sel=ymd(t); load(); };
+
+/* ---------- その日 ---------- */
+function renderDay(){
+  var d=new Date(S.sel.replace(/-/g,"/"));
+  document.getElementById("dayTitle").textContent=(d.getMonth()+1)+"月"+d.getDate()+"日（"+"日月火水木金土".charAt(d.getDay())+"）の予定";
+  document.getElementById("dayHol").textContent=S.holidays[S.sel]||"";
+  var evs=onDay(S.sel);
+  document.getElementById("list").innerHTML = evs.length ? evs.map(function(e){
+    var p=P(e.person);
+    var whoName = (e.person==="shared" && e.participants && e.participants.length) ? e.participants.map(function(k){return P(k).name;}).join("・") : p.name;
+    return '<div class="item" style="border-left-color:'+p.color+(e.saving?';opacity:.55':'')+'" data-ev="'+esc(e.id)+'" data-pp="'+e.person+'">'+
+      '<div class="tm">'+(e.allDay?"終日":e.start+"〜"+e.end)+'</div><div><div class="who" style="color:'+deep(p.color)+'">'+(e.person==="shared"?"👥 ":"")+esc(whoName)+'</div>'+
+      '<div class="tt">'+esc(e.title)+'</div>'+(e.location?'<div class="sub">📍 '+esc(e.location)+'</div>':'')+(e.remind?'<div class="sub">🔔 '+esc(remindLabel(e.remind,e.allDay))+'</div>':'')+(e.note?'<div class="sub">'+esc(e.note)+'</div>':'')+'</div></div>';
+  }).join("") : '<div class="empty">この日の予定はありません。<br>下の「＋ 予定を入れる」から入れられます。</div>';
+}
+document.getElementById("list").addEventListener("click",function(e){
+  var c=e.target.closest("[data-ev]"); if(!c) return;
+  var ev=S.events.filter(function(x){ return x.id===c.getAttribute("data-ev") && x.person===c.getAttribute("data-pp"); })[0];
+  if (ev) openForm(ev);
+});
+
+/* ---------- 入力 ---------- */
+function $(id){ return document.getElementById(id); }
+function renderWho(){
+  $("fWho").innerHTML = S.people.map(function(p){
+    var on = S.formWho.indexOf(p.key)>=0;
+    return '<button type="button" data-w="'+p.key+'" '+(p.ready?'':'disabled')+' class="'+(on?'on':'')+'" style="'+(on?'background:'+p.color+';color:'+fg(p.color)+';border-color:'+p.color:'border-color:'+p.color)+'">'+(on?'✓ ':'')+esc(p.name)+'</button>';
+  }).join("");
+}
+function whoLabel(parts){ return (parts||[]).map(function(k){return P(k).name;}).join("・"); }
+function lastWho(){ try{ var a=JSON.parse(store("yt_who")||"[]"); if(Array.isArray(a)){ a=a.filter(function(k){ var q=P(k); return q && q.ready; }); if(a.length) return a; } }catch(e){} var fr=(S.people.filter(function(p){return p.ready;})[0]||{}).key; return fr?[fr]:[]; }
+$("fWho").addEventListener("click",function(e){ var b=e.target.closest("[data-w]"); if(!b||b.disabled) return; var k=b.getAttribute("data-w"); var i=S.formWho.indexOf(k); if(i>=0) S.formWho.splice(i,1); else S.formWho.push(k); renderWho(); });
+$("fAll").addEventListener("change",function(){ $("fTimes").classList.toggle("hidden",this.checked); fillRemind(this.checked, this.checked ? "900" : "30"); });
+/* 通知の選び方（何分前）。終日の予定は0時から数えるので、前日の朝9時＝900分前、前日の夕方5時＝420分前 */
+var REMIND_TIME = [["","通知なし"],["10","10分前"],["30","30分前"],["60","1時間前"],["1440","前日（同じ時刻）"]];
+var REMIND_DAY  = [["","通知なし"],["900","前日の朝9時"],["420","前日の夕方5時"]];
+function fillRemind(allDay, val){
+  var list = allDay ? REMIND_DAY : REMIND_TIME;
+  if (val && !list.some(function(o){ return o[0]===val; })) list = list.concat([[val, remindLabel(val, allDay)]]);   // Googleカレンダーで別の時間にした通知も表示
+  $("fRemind").innerHTML = list.map(function(o){ return '<option value="'+o[0]+'">'+o[1]+'</option>'; }).join("");
+  $("fRemind").value = val || "";
+}
+function remindLabel(v, allDay){
+  if (!v) return ""; var m = +v;
+  if (allDay){ var h = 24 - m/60; return h >= 0 && h % 1 === 0 ? "前日の"+h+"時" : m+"分前"; }
+  return m >= 1440 && m % 1440 === 0 ? (m/1440)+"日前" : m >= 60 && m % 60 === 0 ? (m/60)+"時間前" : m+"分前";
+}
+$("fStart").addEventListener("change",function(){   // はじまりを変えたら、おわりを1時間後に
+  if (!this.value) return; var a=this.value.split(":"), h=(+a[0]+1)%24; if (!$("fEnd").value || $("fEnd").value<=this.value) $("fEnd").value=pad(h)+":"+a[1];
+});
+function openForm(ev){
+  S.editing = ev || null;
+  $("fErr").classList.add("hidden");
+  $("fTitle").textContent = ev ? "予定を直す" : "予定を入れる";
+  S.formWho = ev ? ((ev.participants && ev.participants.length) ? ev.participants.slice() : [ev.person]) : lastWho();
+  $("fName").value = ev ? ev.title : "";
+  $("fDate").value = ev ? ev.date : S.sel;
+  $("fAll").checked = ev ? ev.allDay : false;
+  $("fStart").value = ev && !ev.allDay ? ev.start : "09:00";
+  $("fEnd").value = ev && !ev.allDay ? ev.end : "10:00";
+  $("fPlace").value = ev ? ev.location : "";
+  $("fNote").value = ev ? ev.note : "";
+  $("fTimes").classList.toggle("hidden", $("fAll").checked);
+  fillRemind($("fAll").checked, ev ? (ev.remind || "") : "30");
+  $("fDel").classList.toggle("hidden", !ev);
+  renderWho();
+  $("bg").classList.remove("hidden");
+  if (ev && ev.recurring){ showErr("くり返しの予定は、ここでは直せません。Googleカレンダーで直してください。"); }
+}
+function closeForm(){ $("bg").classList.add("hidden"); }
+function showErr(t){ $("fErr").textContent=t; $("fErr").classList.remove("hidden"); }
+$("fab").onclick=function(){ openForm(null); };
+$("addDay").onclick=function(){ openForm(null); };
+$("fCancel").onclick=closeForm;
+$("bg").addEventListener("click",function(e){ if(e.target.id==="bg") closeForm(); });
+$("fSave").onclick=function(){
+  var parts = S.formWho.slice();
+  var ev={ id:S.editing?S.editing.id:"", oldPerson:S.editing?S.editing.person:"", participants:parts, title:$("fName").value.trim(),
+    date:$("fDate").value, allDay:$("fAll").checked, start:$("fStart").value, end:$("fEnd").value, location:$("fPlace").value.trim(), note:$("fNote").value.trim(), remind:$("fRemind").value };
+  if (!parts.length) return showErr("だれの予定かを選んでください（1人でも複数でもOK）");
+  if (!ev.title) return showErr("件名を入れてください");
+  if (!ev.date) return showErr("日にちを選んでください");
+  if (!ev.allDay && (!ev.start || !ev.end || ev.end<=ev.start)) return showErr("おわりの時間は、はじまりより後にしてください");
+  store("yt_who", JSON.stringify(parts));
+  var newKey = parts.length===1 ? parts[0] : "shared";
+  /* すぐ画面に出す（Googleカレンダーへの保存は裏で。失敗したら元に戻して知らせる）*/
+  var before = S.events.slice(), old = S.editing;
+  var shown = { id: ev.id || ("tmp"+Date.now()), person:newKey, participants:parts, title:ev.title, date:ev.date, endDate:ev.date, allDay:ev.allDay,
+    start:ev.allDay?"":ev.start, end:ev.allDay?"":ev.end, location:ev.location, note:ev.note, remind:ev.remind, recurring:false, saving:true };
+  S.events = S.events.filter(function(x){ return !(old && x.id===old.id && x.person===old.person); }).concat([shown]);
+  closeForm();
+  var d=new Date(ev.date.replace(/-/g,"/")), sameMonth = d.getFullYear()===S.y && d.getMonth()===S.m;
+  S.sel=ev.date; S.y=d.getFullYear(); S.m=d.getMonth();
+  renderCal(); renderDay();
+  toast("保存しています…");
+  run("saveEvent", ev).then(function(saved){
+    S.events = S.events.map(function(x){ return x===shown ? saved : x; });
+    toast(whoLabel(parts)+" の予定を入れました");
+    if (!sameMonth) load(); else { renderCal(); renderDay(); }
+  }).catch(function(e){
+    S.events = before; renderCal(); renderDay();
+    alert("保存できませんでした："+(e.message||e)+"\nもう一度お試しください。");
+  });
+};
+$("fDel").onclick=function(){
+  var ev=S.editing; if(!ev) return;
+  if (!confirm("「"+ev.title+"」を消します。よろしいですか？\n（"+whoLabel(ev.participants && ev.participants.length ? ev.participants : [ev.person])+" のカレンダーから消えます）")) return;
+  /* すぐ画面から消す（Googleカレンダーからは裏で消す）*/
+  var before = S.events.slice();
+  S.events = S.events.filter(function(x){ return !(x.id===ev.id && x.person===ev.person); });
+  closeForm(); renderCal(); renderDay(); toast("消しています…");
+  run("deleteEvent", ev.person, ev.id).then(function(){ toast("消しました"); })
+    .catch(function(e){ S.events = before; renderCal(); renderDay(); alert("消せませんでした："+(e.message||e)); });
+};
+/* ============================================================
+ * 予定 高速版: 前回の予定をすぐ出し、裏で最新に置き換える
+ * (画面のスクリプトの末尾に入れる。起動処理より先に load を差し替えるため)
+ * ============================================================ */
+(function(){
+  var EV_KEY = 'yt_fast_ev_';
+  var LIST_KEY = 'yt_fast_ev_list';
+  var KEEP_MONTHS = 8;
+  var loadSeq = 0, viewKey = '', lastLoad = 0, droppedLoad = false, prefetched = {};
+
+  function rangeOf(y, m){
+    var first=new Date(y,m,1), from=new Date(y,m,1-first.getDay()), to=new Date(from); to.setDate(to.getDate()+42);
+    return { from:ymd(from), to:ymd(to), key:ymd(from)+'_'+ymd(to) };
+  }
+  function readMonth(key){ try{ return JSON.parse(localStorage.getItem(EV_KEY+key)); }catch(e){ return null; } }
+  function writeMonth(key, data){
+    try{
+      localStorage.setItem(EV_KEY+key, JSON.stringify(data));
+      var list = JSON.parse(localStorage.getItem(LIST_KEY)||'[]').filter(function(k){ return k!==key; });
+      list.push(key);
+      while(list.length>KEEP_MONTHS) localStorage.removeItem(EV_KEY+list.shift());
+      localStorage.setItem(LIST_KEY, JSON.stringify(list));
+    }catch(e){}
+  }
+  function show(data){
+    S.events = data.events;
+    S.holidays = {};
+    data.holidays.forEach(function(h){ S.holidays[h.date]=h.name; });
+    renderCal(); renderDay();
+  }
+  function writesQuiet(startSeq){ return YT_FAST.pendingWrites===0 && YT_FAST.writeSeq===startSeq; }
+
+  function prefetchAround(){
+    [-1,1].forEach(function(n){
+      var d=new Date(S.y,S.m+n,1), g=rangeOf(d.getFullYear(),d.getMonth());
+      if(prefetched[g.key]) return;
+      prefetched[g.key]=true;
+      var ws=YT_FAST.writeSeq;
+      run('getEvents',g.from,g.to).then(function(r){ if(writesQuiet(ws)) writeMonth(g.key,r); }).catch(function(){ delete prefetched[g.key]; });
+    });
+  }
+
+  load = function(){
+    var g=rangeOf(S.y,S.m), seq=++loadSeq, ws=YT_FAST.writeSeq, saved=readMonth(g.key);
+    viewKey=g.key; lastLoad=Date.now();
+    if(saved){ show(saved); busy(false); }
+    else { S.events=[]; S.holidays={}; renderCal(); renderDay(); busy(true); }
+    run('getEvents',g.from,g.to).then(function(r){
+      if(seq===loadSeq) busy(false);
+      if(!writesQuiet(ws)){ droppedLoad=true; return; }   // 保存中に読んだ内容は古いので使わない
+      writeMonth(g.key,r);
+      if(seq!==loadSeq) return;
+      prefetched[g.key]=true;
+      show(r);
+      prefetchAround();
+    }).catch(function(e){
+      if(seq!==loadSeq) return;
+      busy(false);
+      if(!saved) alert('予定を読めませんでした：'+(e.message||e));
+    });
+  };
+
+  // 保存・削除が終わったら、いま見ている月の控えも直す
+  YT_FAST.onWritten = function(){
+    if(YT_FAST.pendingWrites>0) return;
+    var hol=Object.keys(S.holidays).map(function(k){ return {date:k,name:S.holidays[k]}; });
+    writeMonth(viewKey,{ events:S.events.filter(function(e){ return !e.saving; }), holidays:hol });
+    prefetched={};
+    if(droppedLoad){ droppedLoad=false; load(); }
+  };
+
+  YT_FAST.onConfig = function(c){ S.people=c.people; renderPeople(); };
+
+  // しばらくして画面に戻ったら読み直す (入力中は邪魔しない)
+  document.addEventListener('visibilitychange', function(){
+    if(document.hidden || !S.y || Date.now()-lastLoad<60000) return;
+    if(!document.getElementById('bg').classList.contains('hidden')) return;
+    load();
+  });
+})();
+</script>
+</body>
+</html>
