@@ -1,0 +1,1882 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>勤怠管理</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#1b2942">
+<link rel="apple-touch-icon" href="kintai.png">
+<link rel="icon" href="kintai.png">
+<link rel="preconnect" href="https://script.google.com">
+<link rel="preconnect" href="https://script.googleusercontent.com">
+<style>
+  :root{
+    /* ブランド：社内ポータルと統一（ネイビー＋ゴールド） */
+    --navy:#1b2942; --navy-deep:#132033; --gold:#c8a35b;
+    --pat:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='150' height='150' viewBox='0 0 150 150'><g fill='none' stroke='%23ffffff' stroke-opacity='0.10' stroke-width='2'><ellipse cx='75' cy='75' rx='42' ry='30' transform='rotate(30 75 75)'/><ellipse cx='75' cy='75' rx='42' ry='30' transform='rotate(-30 75 75)'/></g></svg>");
+    --bg:#f4f6fa;
+    --card:#ffffff;
+    --ink:#1b2942;
+    --ink-soft:#7a8699;
+    --ink-mid:#52607a;
+    --line:#e2e7f0;
+    --accent:#1b2942;
+    --accent-soft:#e9edf5;
+    --green:#3a7d5c; --green-soft:#e4f1ea;
+    --amber:#c8862a; --amber-soft:#f9edd8;
+    --blue:#2f6df0; --blue-soft:#e8f0fe;
+    --purple:#5b57c8; --purple-soft:#e9e8fa;
+    --danger:#c0492f; --danger-soft:#f8e6e2;
+    --shadow:0 1px 3px rgba(20,30,55,0.06),0 10px 28px rgba(20,30,55,0.06);
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg);color:var(--ink);
+    font-family:"Hiragino Kaku Gothic ProN","Yu Gothic UI","Meiryo",system-ui,-apple-system,sans-serif;
+    -webkit-font-smoothing:antialiased;
+    min-height:100vh;font-size:16.5px;line-height:1.5;
+  }
+  .wrap{max-width:640px;margin:0 auto;padding:0 18px 40px 18px;}
+
+  /* ===== モード選択 (ホーム) ===== ネイビー地＋ループ模様（ポータルと統一） */
+  .home{position:relative;overflow:hidden;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:70px 22px 44px 22px;
+    background:radial-gradient(135% 72% at 50% -8%, #2c4168 0%, rgba(44,65,104,0) 56%), linear-gradient(160deg,#213255,#152238);}
+  .home::before{content:"";position:absolute;inset:0;opacity:.55;pointer-events:none;background-image:var(--pat);background-size:150px 150px;}
+  .home>*{position:relative;z-index:1;}
+  .home-avatar{width:118px;height:118px;border-radius:26px;margin-bottom:18px;overflow:hidden;
+    background:var(--navy-deep);border:2px solid rgba(200,163,91,0.65);box-shadow:0 10px 26px rgba(0,0,0,0.32);}
+  .home-logo{width:100%;height:100%;object-fit:cover;display:block;}
+  .home-company{font-size:15px;font-weight:800;color:var(--gold);margin-bottom:4px;letter-spacing:.04em;}
+  .home-title{font-size:28px;font-weight:800;letter-spacing:.01em;margin:0;color:#fff;}
+  .home-sub{font-size:15px;color:rgba(255,255,255,0.72);margin:8px 0 34px 0;}
+  .mode-list{width:100%;max-width:420px;display:flex;flex-direction:column;gap:16px;}
+  .mode-card{
+    background:var(--card);border:none;border-radius:20px;box-shadow:var(--shadow);
+    padding:22px 22px;display:flex;align-items:center;gap:18px;cursor:pointer;width:100%;text-align:left;
+    font-family:inherit;transition:transform .1s ease;
+  }
+  .mode-card:active{transform:scale(0.985);}
+  .mode-ico{width:64px;height:64px;border-radius:50%;flex:0 0 auto;display:flex;align-items:center;justify-content:center;font-size:28px;}
+  .mode-ico.emp{background:#e7edf7;}
+  .mode-ico.adm{background:#f6ecd9;}
+  .mode-text .t{font-size:19px;font-weight:800;color:var(--accent);margin-bottom:3px;}
+  .mode-text .s{font-size:13.5px;color:var(--ink-soft);}
+
+  /* ===== 画面共通ヘッダー ===== */
+  .appbar{
+    position:sticky;top:0;z-index:20;overflow:hidden;
+    background:linear-gradient(160deg,var(--navy),var(--navy-deep));color:#fff;
+    display:flex;align-items:center;gap:10px;padding:14px 18px;
+  }
+  .appbar::before{content:"";position:absolute;inset:0;opacity:.5;pointer-events:none;background-image:var(--pat);background-size:150px 150px;}
+  .appbar>*{position:relative;z-index:1;}
+  .back-btn{
+    background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.22);border-radius:12px;width:38px;height:38px;flex:0 0 auto;
+    font-size:19px;color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;
+  }
+  .back-btn:active{transform:scale(0.95);}
+  .appbar-title{font-size:19px;font-weight:800;color:#fff;}
+  .appbar-spacer{flex:1;}
+  .appbar-date{font-size:12px;color:rgba(255,255,255,0.7);}
+
+  .segmented{display:flex;gap:6px;background:#e6eaf2;border-radius:14px;padding:5px;margin:0 0 18px 0;}
+  .seg{
+    flex:1;text-align:center;padding:12px 6px;border-radius:11px;border:none;background:transparent;
+    font-size:15.5px;font-weight:800;color:var(--ink-mid);cursor:pointer;font-family:inherit;transition:all .12s ease;
+  }
+  .seg.active{background:#fff;color:var(--accent);box-shadow:0 1px 3px rgba(0,0,0,0.08);}
+  .seg-badge{display:inline-block;min-width:18px;height:18px;line-height:18px;padding:0 5px;margin-left:3px;border-radius:9px;background:var(--danger);color:#fff;font-size:11px;font-weight:800;vertical-align:middle;}
+
+  .card{background:var(--card);border-radius:18px;box-shadow:var(--shadow);padding:18px;margin-bottom:16px;}
+  .card-title{font-size:15.5px;font-weight:800;color:var(--ink);margin:0 0 12px 2px;letter-spacing:.01em;padding-left:10px;border-left:4px solid var(--accent);}
+
+  /* ===== 打刻 ===== */
+  .who-label{font-size:15px;font-weight:800;color:var(--ink);margin:0 0 8px 2px;}
+  .who-lock{margin-bottom:16px;font-size:13.5px;padding:11px;}
+  .who-fixed{display:flex;align-items:center;justify-content:space-between;gap:10px;background:#fff;border:2px solid var(--accent-soft);border-radius:14px;padding:14px 16px;margin-bottom:16px;box-shadow:var(--shadow);}
+  .who-fixed-lbl{font-size:12px;color:var(--ink-soft);font-weight:700;margin-bottom:2px;}
+  .who-fixed-name{font-size:22px;font-weight:800;color:var(--ink);}
+  .who-change{flex:0 0 auto;background:var(--accent-soft);color:var(--accent);border:none;border-radius:11px;padding:10px 18px;font-size:14px;font-weight:800;cursor:pointer;font-family:inherit;}
+  .who-change:active{transform:scale(0.96);}
+  .who-select{
+    width:100%;border:2px solid var(--line);border-radius:13px;padding:15px 15px;font-size:18px;font-weight:700;font-family:inherit;
+    background:#fff;color:var(--ink);margin-bottom:16px;-webkit-appearance:none;appearance:none;
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%238a8a8e' stroke-width='2'><path d='M6 9l6 6 6-6'/></svg>");
+    background-repeat:no-repeat;background-position:right 15px center;
+  }
+  .status-card{text-align:center;}
+  .status-badge{display:inline-flex;align-items:center;gap:8px;font-size:17px;font-weight:800;padding:9px 20px;border-radius:999px;margin-bottom:12px;}
+  .status-badge .dot{width:11px;height:11px;border-radius:50%;}
+  .status-off{color:var(--ink-soft);background:#eef1f6;}.status-off .dot{background:var(--ink-soft);}
+  .status-working{color:var(--green);background:var(--green-soft);}.status-working .dot{background:var(--green);}
+  .status-break{color:var(--amber);background:var(--amber-soft);}.status-break .dot{background:var(--amber);}
+  .status-done{color:var(--blue);background:var(--blue-soft);}.status-done .dot{background:var(--blue);}
+  .clock-now{font-size:56px;font-weight:800;letter-spacing:.02em;line-height:1;}
+  .clock-date{font-size:15px;color:var(--ink-soft);margin-top:8px;}
+  .time-summary{display:flex;margin-top:18px;padding-top:18px;border-top:1px solid var(--line);}
+  .time-summary .cell{flex:1;display:flex;flex-direction:column;gap:4px;}
+  .time-summary .cell + .cell{border-left:1px solid var(--line);}
+  .time-summary .cell .lbl{font-size:13px;color:var(--ink-soft);font-weight:700;}
+  .time-summary .cell .val{font-size:23px;font-weight:800;}
+  .punch-buttons{display:grid;grid-template-columns:1fr;gap:12px;}
+  .punch-btn{
+    padding:34px 10px;border-radius:20px;border:none;cursor:pointer;font-family:inherit;font-size:28px;font-weight:800;color:#fff;
+    display:flex;align-items:center;justify-content:center;gap:12px;transition:transform .08s ease,opacity .15s ease;box-shadow:0 6px 16px rgba(0,0,0,0.12);
+  }
+  .punch-btn .ico{font-size:30px;line-height:1;}
+  .punch-btn:active{transform:scale(0.97);}
+  .punch-btn:disabled{opacity:.35;cursor:not-allowed;}
+  .punch-btn.in{background:linear-gradient(160deg,#20b268,#139350);box-shadow:0 8px 20px rgba(20,150,80,0.28);}
+  .punch-btn.out{background:linear-gradient(160deg,#f0584a,#d5372b);box-shadow:0 8px 20px rgba(206,55,42,0.28);}
+  .punch-btn.remote{background:linear-gradient(160deg,#3f86ff,#2563eb);box-shadow:0 8px 20px rgba(37,99,235,0.26);}
+  .punch-btn.night{background:linear-gradient(160deg,#6f6ae8,#4f46d6);box-shadow:0 8px 20px rgba(79,70,214,0.26);}
+  .status-line{display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:12px;flex-wrap:wrap;}
+  .kubun-chip{display:inline-block;font-size:13px;font-weight:800;padding:4px 12px;border-radius:999px;white-space:nowrap;}
+  .kubun-chip.k-office{color:var(--ink-mid);background:#e9edf5;}
+  .kubun-chip.k-remote{color:var(--blue);background:var(--blue-soft);}
+  .kubun-chip.k-night{color:var(--purple);background:var(--purple-soft);}
+  .kubun-chip.k-leave{color:#c2185b;background:#fce4ec;}
+  .kubun-chip.k-comp{color:#00796b;background:#e0f2f1;}
+  tr.comp-row td{background:#f2fbfa;}
+  .done-msg{text-align:center;font-size:18px;font-weight:800;color:var(--blue);background:var(--blue-soft);border-radius:18px;padding:26px 16px;line-height:1.6;}
+  .work-note{width:100%;border:2px solid var(--line);border-radius:12px;padding:12px 13px;font-size:16px;font-family:inherit;background:#fff;color:var(--ink);resize:vertical;min-height:80px;margin-bottom:10px;}
+  .work-note:focus{outline:none;border-color:var(--accent);}
+  .done-note{font-size:16px;color:var(--ink);background:#f0f3f8;border-radius:10px;padding:12px 14px;white-space:pre-wrap;word-break:break-word;}
+
+  /* ===== 有給 (残日数バナー) ===== */
+  .paid-banner{display:flex;align-items:center;justify-content:space-between;background:var(--green-soft);border-radius:16px;padding:16px 18px;margin-bottom:16px;}
+  .paid-banner .lead{font-size:13px;color:var(--ink-mid);font-weight:700;}
+  .paid-num{font-size:30px;font-weight:800;color:var(--green);}
+  .paid-num small{font-size:14px;font-weight:700;margin-left:2px;}
+  .paid-sub{font-size:11px;color:var(--ink-soft);text-align:right;margin-top:2px;}
+
+  .field{display:flex;flex-direction:column;gap:6px;margin-bottom:14px;}
+  .field label{font-size:12px;color:var(--ink-soft);font-weight:700;}
+  .field input,.field select,.field textarea{
+    border:1px solid var(--line);border-radius:12px;padding:12px 13px;font-size:16px;font-family:inherit;background:#fff;color:var(--ink);
+  }
+  .field textarea{resize:vertical;min-height:64px;}
+  .type-choices{display:flex;gap:8px;}
+  .type-choice{
+    flex:1;text-align:center;padding:11px 4px;border-radius:12px;border:1.5px solid var(--line);background:#fff;
+    font-size:14px;font-weight:700;color:var(--ink-mid);cursor:pointer;font-family:inherit;
+  }
+  .type-choice.active{border-color:var(--accent);background:var(--accent-soft);color:var(--accent);}
+
+  /* ===== リスト (申請・承認) ===== */
+  .leave-item{background:#fff;border-radius:14px;box-shadow:var(--shadow);padding:14px 16px;margin-bottom:10px;}
+  .leave-top{display:flex;align-items:center;justify-content:space-between;gap:8px;}
+  .leave-when{font-size:15px;font-weight:800;}
+  .leave-meta{font-size:12.5px;color:var(--ink-soft);margin-top:4px;}
+  .leave-reason{font-size:13px;color:var(--ink-mid);margin-top:6px;background:#f0f3f8;border-radius:8px;padding:8px 10px;white-space:pre-wrap;word-break:break-word;}
+  .st-pill{display:inline-block;font-size:11px;font-weight:800;padding:4px 11px;border-radius:999px;white-space:nowrap;}
+  .st-pill.pending{color:var(--amber);background:var(--amber-soft);}
+  .st-pill.approved{color:var(--green);background:var(--green-soft);}
+  .st-pill.rejected{color:var(--danger);background:var(--danger-soft);}
+  .st-pill.off{color:var(--ink-soft);background:#eef1f6;}
+  .st-pill.working{color:var(--green);background:var(--green-soft);}
+  .st-pill.break{color:var(--amber);background:var(--amber-soft);}
+  .st-pill.done{color:var(--blue);background:var(--blue-soft);}
+  .st-pill.leave{color:#c2185b;background:#fce4ec;}
+  tr.leave-row td{background:#fff5f8;}
+  .leave-actions{display:flex;gap:8px;margin-top:12px;}
+  .leave-actions .btn{flex:1;}
+  .leave-staff{font-size:13px;color:var(--accent);font-weight:800;margin-bottom:2px;}
+
+  /* ===== 残日数サマリ (管理者) ===== */
+  .bal-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px;}
+  .bal-cell{background:#fff;border-radius:12px;box-shadow:var(--shadow);padding:12px 14px;}
+  .bal-cell .nm{font-size:13px;font-weight:800;}
+  .bal-cell .rm{font-size:22px;font-weight:800;color:var(--green);margin-top:4px;}
+  .bal-cell .rm small{font-size:12px;font-weight:700;}
+  .bal-cell .gr{font-size:11px;color:var(--ink-soft);}
+
+  /* ===== 月次一覧 (管理者) ===== */
+  .month-nav{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px;flex-wrap:wrap;}
+  .month-picker{display:flex;align-items:center;gap:8px;}
+  .month-arrow{width:38px;height:38px;border-radius:12px;border:none;background:#fff;box-shadow:var(--shadow);color:var(--accent);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+  .month-arrow:active{transform:scale(0.95);}
+  .month-title{font-size:17px;font-weight:800;min-width:110px;text-align:center;}
+  .month-actions{display:flex;gap:8px;flex-wrap:wrap;}
+  .month-range{font-size:13px;font-weight:700;color:var(--ink-mid);background:var(--accent-soft);border-radius:10px;padding:8px 14px;margin-bottom:14px;text-align:center;}
+  .table-wrap{background:var(--card);border-radius:16px;box-shadow:var(--shadow);overflow-x:auto;margin-bottom:16px;}
+  table.grid{width:100%;border-collapse:collapse;font-size:15px;}
+  table.grid th{text-align:right;color:#fff;background:var(--accent);font-weight:800;font-size:13.5px;padding:13px 14px;white-space:nowrap;}
+  table.grid th:first-child,table.grid td:first-child{text-align:left;}
+  table.grid td{padding:13px 14px;text-align:right;border-bottom:1px solid var(--line);white-space:nowrap;}
+  table.grid tbody tr:nth-child(even){background:#f6f8fb;}
+  table.grid tbody tr:last-child td{border-bottom:none;}
+  .sum-name{font-weight:800;font-size:15.5px;}
+  .over-hl{color:var(--danger);font-weight:800;}
+  .records-wrap table.grid{min-width:800px;}
+  .rec-date{color:var(--ink-mid);font-size:13.5px;font-weight:700;}
+  .rec-staff{font-weight:800;}
+  .cell-input{width:66px;border:1px solid transparent;border-radius:8px;padding:8px 6px;font-size:15px;font-family:inherit;text-align:center;background:transparent;color:var(--ink);}
+  .cell-input:hover{border-color:var(--line);background:#faf9f7;}
+  .cell-input:focus{outline:none;border-color:var(--accent);background:#fff;}
+  .cell-note{width:120px;text-align:left;}
+  .rec-del{background:none;border:none;color:var(--ink-soft);opacity:.5;cursor:pointer;font-size:15px;padding:6px;}
+  .rec-del:active{opacity:1;}
+
+  /* ===== 給与計算 (管理者) ===== */
+  .seg4 .seg{padding:12px 2px;font-size:14.5px;}
+  .pay-hint{font-size:12.5px;color:var(--ink-mid);background:#f0f3f8;border-radius:10px;padding:10px 13px;margin-bottom:14px;line-height:1.55;}
+  .pay-card{background:var(--card);border-radius:18px;box-shadow:var(--shadow);padding:18px;margin-bottom:16px;}
+  .pay-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding-bottom:14px;border-bottom:1px solid var(--line);}
+  .pay-name{font-size:18px;font-weight:800;}
+  .pay-net{text-align:right;}
+  .pay-net .lbl{display:block;font-size:11px;color:var(--ink-soft);font-weight:700;}
+  .pay-net .amt{font-size:22px;font-weight:800;color:var(--green);}
+  .pay-att{font-size:12.5px;color:var(--ink-mid);font-weight:700;background:var(--accent-soft);border-radius:9px;padding:8px 12px;margin:12px 0 4px 0;text-align:center;}
+  .pay-sec{font-size:12px;font-weight:800;color:var(--ink-soft);letter-spacing:.06em;margin:14px 0 4px 2px;}
+  .pay-line{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 2px;border-bottom:1px solid var(--line);min-height:44px;}
+  .pay-line .pl-label{font-size:14.5px;color:var(--ink);font-weight:700;}
+  .pay-line .pl-label small{display:block;font-size:11.5px;color:var(--ink-soft);font-weight:700;margin-top:3px;}
+  .pay-line .pl-val{font-size:15.5px;font-weight:800;white-space:nowrap;}
+  .pay-line.total{background:#f6f8fb;border-radius:10px;margin-top:6px;padding:11px 12px;border-bottom:none;}
+  .pay-line.total .pl-label{font-weight:800;}
+  .pay-line.grand{background:var(--green-soft);border-radius:12px;margin-top:8px;padding:14px 14px;border-bottom:none;}
+  .pay-line.grand .pl-label{font-size:15px;font-weight:800;color:var(--ink);}
+  .pay-line.grand .pl-val{font-size:21px;color:var(--green);}
+  .pay-in-wrap{display:inline-flex;align-items:center;gap:4px;}
+  .pay-input{width:98px;border:1px solid var(--line);border-radius:9px;padding:8px 9px;font-size:15px;font-family:inherit;text-align:right;background:#fff;color:var(--ink);}
+  .pay-input:focus{outline:none;border-color:var(--accent);background:#fff;}
+  .pay-in-wrap .yen{font-size:12.5px;color:var(--ink-soft);font-weight:700;}
+
+  /* ===== スタッフ管理 (管理者) ===== */
+  .staff-row{background:#fff;border-radius:14px;box-shadow:var(--shadow);padding:14px 16px;margin-bottom:10px;}
+  .staff-row-top{display:flex;align-items:center;justify-content:space-between;gap:10px;}
+  .staff-row .nm{font-size:16px;font-weight:800;}
+  .staff-row-ctrl{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:10px;padding-top:10px;border-top:1px solid var(--line);}
+  .staff-row .paid-edit{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--ink-mid);font-weight:700;}
+  .staff-row .paid-edit input{width:56px;border:1px solid var(--line);border-radius:8px;padding:7px;font-size:15px;font-family:inherit;text-align:center;}
+  .staff-row .night-check{display:flex;align-items:center;gap:7px;font-size:14px;font-weight:800;color:var(--purple);cursor:pointer;}
+  .staff-row .night-check input{width:20px;height:20px;accent-color:var(--purple);}
+  .staff-row .multi-check{display:flex;align-items:center;gap:7px;font-size:14px;font-weight:800;color:var(--blue);cursor:pointer;}
+  .staff-row .multi-check input{width:20px;height:20px;accent-color:var(--blue);}
+  .staff-row .rm{background:none;border:none;color:var(--ink-soft);opacity:.6;cursor:pointer;font-size:13px;font-weight:700;}
+  .staff-row .rm:active{opacity:1;color:var(--danger);}
+
+  /* ===== PINゲート ===== */
+  .pin-gate{max-width:340px;margin:8vh auto 0 auto;text-align:center;}
+  .pin-lock{width:76px;height:76px;border-radius:50%;background:var(--purple-soft);display:flex;align-items:center;justify-content:center;font-size:34px;margin:0 auto 16px auto;}
+  .pin-gate h2{font-size:20px;font-weight:800;margin:0 0 6px 0;}
+  .pin-gate p{font-size:13px;color:var(--ink-soft);margin:0 0 20px 0;}
+  .pin-input{width:100%;border:1px solid var(--line);border-radius:14px;padding:16px;font-size:26px;text-align:center;letter-spacing:.5em;font-family:inherit;background:#fff;}
+  .pin-input:focus{outline:none;border-color:var(--accent);}
+
+  /* ===== 汎用 ===== */
+  .btn{padding:12px 18px;border-radius:13px;font-size:14px;font-weight:800;cursor:pointer;border:none;background:#fff;box-shadow:var(--shadow);color:var(--ink-mid);font-family:inherit;}
+  .btn.primary{background:var(--accent);color:#fff;}
+  .btn.approve{background:var(--green);color:#fff;}
+  .btn.reject{background:#fff;color:var(--danger);box-shadow:inset 0 0 0 1.5px var(--danger-soft),var(--shadow);}
+  .btn.excel{background:#217346;color:#fff;}
+  .btn.block{width:100%;}
+  .btn:active{transform:scale(0.98);}
+  .btn:disabled{opacity:.5;}
+
+  .empty-hint{padding:40px 14px;text-align:center;color:var(--ink-soft);font-size:13.5px;}
+  .link-btn{background:none;border:none;color:var(--accent);font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;padding:6px;}
+
+  .overlay{position:fixed;inset:0;background:rgba(30,30,32,0.4);display:flex;align-items:center;justify-content:center;z-index:50;padding:18px;}
+  .modal{background:#fff;border-radius:18px;padding:22px;width:340px;max-width:100%;box-shadow:0 16px 50px rgba(0,0,0,.25);}
+  .modal h3{margin:0 0 16px 0;font-size:17px;font-weight:800;}
+  .modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:6px;}
+
+  .toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:#2b2b2e;color:#fff;padding:12px 20px;border-radius:12px;font-size:13.5px;opacity:0;pointer-events:none;transition:opacity .25s ease;z-index:100;max-width:90vw;text-align:center;box-shadow:0 8px 24px rgba(0,0,0,.2);}
+  .toast.show{opacity:1;}
+
+  .loading-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;color:var(--ink-soft);font-size:13px;flex-direction:column;gap:10px;}
+  .spinner{width:24px;height:24px;border-radius:50%;border:3px solid #dcdbd6;border-top-color:var(--accent);animation:spin .8s linear infinite;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+
+  /* ===== シフト ===== */
+  .seg3 .seg{padding:12px 4px;font-size:15px;}
+  .seg5 .seg{padding:11px 1px;font-size:13px;}
+  .sub-seg{margin-bottom:14px;}
+  .hours-edit{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--ink-mid);font-weight:700;flex-wrap:wrap;}
+  .hours-edit input[type=time]{border:1px solid var(--line);border-radius:8px;padding:6px 8px;font-size:14px;font-family:inherit;}
+
+  /* シフト記号の色 */
+  .sh-chip{display:inline-block;font-size:14.5px;font-weight:800;padding:5px 12px;border-radius:9px;white-space:nowrap;line-height:1.25;}
+  .sh-early{color:#c76a00;background:#ffe9cf;}
+  .sh-day{color:var(--blue);background:var(--blue-soft);}
+  .sh-late{color:var(--purple);background:var(--purple-soft);}
+  .sh-night{color:#fff;background:#4b4b6a;}
+  .sh-remote{color:#0f8a7e;background:#d6f3ef;}
+  .sh-half{color:var(--amber);background:var(--amber-soft);}
+  .sh-off{color:var(--ink-soft);background:#ececea;}
+  .sh-paid{color:var(--green);background:var(--green-soft);}
+
+  /* 確定シフト閲覧テーブル */
+  .shift-wrap{max-height:72vh;overflow:auto;}
+  .shift-wrap table.grid{min-width:0;}
+  table.grid.shift-grid th{text-align:center;padding:12px 8px;font-size:14px;}
+  table.grid.shift-grid td{text-align:center;vertical-align:middle;padding:11px 8px;}
+  /* ヘッダー行を固定 */
+  table.grid.shift-grid thead th{position:sticky;top:0;z-index:3;}
+  /* 日付列を固定 */
+  table.grid.shift-grid th.sh-date-h{left:0;z-index:4;text-align:left;}
+  table.grid.shift-grid td.sh-date{position:sticky;left:0;z-index:2;background:#f4f3ef;}
+  .sh-date{font-size:14px;font-weight:800;color:var(--ink-mid);white-space:nowrap;text-align:left;}
+  .sh-cell .sh-time{display:block;font-size:12px;color:var(--ink-soft);font-weight:700;margin-top:4px;white-space:nowrap;}
+  .sh-empty{color:#cfceca;font-weight:700;font-size:16px;}
+  /* 週末の色分け (行全体＋固定した日付セル) */
+  tr.we-sat{background:#eef5ff!important;}
+  tr.we-sun{background:#fdeeec!important;}
+  tr.we-sat td.sh-date{color:var(--blue);background:#e2eeff;}
+  tr.we-sun td.sh-date{color:var(--danger);background:#fbe3df;}
+  /* 週の区切り (月曜の上に線) */
+  tr.wk-start td{border-top:2px solid #cfd4dd;}
+
+  /* 月間カレンダー */
+  .cal-toggle{display:flex;gap:8px;margin-bottom:12px;}
+  .cal-tg{flex:1;padding:10px 6px;border-radius:11px;border:1.5px solid var(--line);background:#fff;font-size:14px;font-weight:800;color:var(--ink-mid);font-family:inherit;cursor:pointer;}
+  .cal-tg.active{border-color:var(--accent);background:var(--accent-soft);color:var(--accent);}
+  .sh-legend{display:flex;flex-wrap:wrap;gap:6px 12px;align-items:center;margin-bottom:12px;font-size:11.5px;color:var(--ink-mid);font-weight:700;}
+  .sh-legend .lg{display:inline-flex;align-items:center;gap:4px;}
+  .sh-legend .sh-chip{font-size:11px;padding:2px 7px;}
+  .name-legend{gap:4px 14px;margin-bottom:8px;}
+  .name-legend b{color:var(--accent);}
+  .cal{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;background:var(--card);border-radius:14px;box-shadow:var(--shadow);padding:8px;}
+  .cal-h{text-align:center;font-size:12px;font-weight:800;color:var(--ink-mid);padding:2px 0 6px;}
+  .cal-h.sun{color:var(--danger);} .cal-h.sat{color:var(--blue);}
+  .cal-cell{min-height:62px;border-radius:8px;background:#f7f6f3;padding:3px 3px 4px;display:flex;flex-direction:column;gap:2px;overflow:hidden;}
+  .cal-cell.empty{background:transparent;}
+  .cal-cell.sat{background:#eef5ff;} .cal-cell.sun{background:#fdeeec;}
+  .cal-num{font-size:11px;font-weight:800;color:var(--ink-mid);text-align:right;line-height:1;}
+  .cal-cell.sat .cal-num{color:var(--blue);} .cal-cell.sun .cal-num{color:var(--danger);}
+  .cal-ent{font-size:10px;font-weight:800;border-radius:5px;padding:2px 3px;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .cal-ent b{margin-right:2px;}
+
+  /* 希望入力 */
+  .wish-list{background:var(--card);border-radius:16px;box-shadow:var(--shadow);overflow:hidden;}
+  .wish-row{display:flex;align-items:center;gap:10px;padding:9px 14px;border-bottom:1px solid var(--line);}
+  .wish-row:last-child{border-bottom:none;}
+  .wish-row.we-sat{background:#f2f7ff;} .wish-row.we-sun{background:#fdf1ef;}
+  .wish-date{flex:0 0 74px;font-size:14px;font-weight:800;color:var(--ink-mid);}
+  .wish-sel{flex:1;}
+  .wish-select{width:100%;border:1px solid var(--line);border-radius:10px;padding:9px 8px;font-size:15px;font-family:inherit;background:#fff;color:var(--ink);}
+  .wish-select:focus{outline:none;border-color:var(--accent);}
+  .wish-fixed{flex:0 0 auto;font-size:11px;color:var(--ink-soft);font-weight:700;text-align:right;min-width:78px;}
+  .sh-time-inline{font-size:10.5px;color:var(--ink-soft);}
+  .sh-fixed-none{color:#c7c6c2;}
+
+  /* 管理者シフトグリッド */
+  table.grid.adm-shift td.adm-cell{padding:7px 6px;text-align:center;min-width:96px;}
+  .adm-sel{width:92px;border:1px solid var(--line);border-radius:9px;padding:7px 5px;font-size:14px;font-family:inherit;text-align:center;background:#fff;color:var(--ink);}
+  .adm-sel:focus{outline:none;border-color:var(--accent);}
+  .adm-wish{font-size:10.5px;color:var(--ink-soft);font-weight:700;margin-top:3px;height:14px;overflow:hidden;}
+  .adm-wish.none{color:transparent;}
+  tr.foot-row td{background:#eef1f6;font-weight:800;border-top:2px solid var(--line);}
+  .adm-total{text-align:center;font-size:14px;}
+
+  @media (max-width:480px){
+    .home{padding:56px 20px 30px 20px;}
+    .home-title{font-size:26px;}
+    .clock-now{font-size:48px;}
+    .punch-btn{font-size:26px;padding:30px 10px;}
+    table.grid th,table.grid td{padding:11px 9px;}
+    table.grid{font-size:14.5px;}
+  }
+</style>
+<style>.pending-alert{display:block;width:100%;max-width:420px;margin:0 auto 14px;padding:14px 16px;border:0;border-radius:16px;background:#c0492f;color:#fff;font-size:16px;font-weight:800;font-family:inherit;cursor:pointer}.mode-card{position:relative}.pending-num{position:absolute;top:10px;right:12px;min-width:26px;height:26px;padding:0 7px;box-sizing:border-box;border-radius:13px;background:#c0492f;color:#fff;font-size:15px;font-weight:800;line-height:26px;text-align:center}.punch-saving{text-align:center;color:#7a8699;font-size:14px;margin-top:10px}.punch-error{background:#fbeae6;color:#c0492f;border:1px solid #e9b8ab;border-radius:12px;padding:12px 14px;margin-bottom:12px;font-weight:700;font-size:15px}</style>
+</head>
+<body>
+<div id="root"><div class="loading-screen"><div class="spinner"></div>読み込み中…</div></div>
+<div id="toast" class="toast"></div>
+<script>
+// ============================================================
+// 勤怠管理 高速版: google.script.run の代わり (javascript.html より先に読む)
+//   画面は GitHub Pages から即表示し、データだけ Google とやり取りする。
+//   端末に残すのは「スタッフ名簿」と「自分の今日の打刻」だけ。
+//   管理者データ・給与・暗証番号は端末に保存しない。
+// ============================================================
+(function(){
+  var API_URL = 'https://script.google.com/macros/s/AKfycbwfy78QKZg9WQZsa_EvxOLM5Xvc3QcVG3GaWUlz1Vuhts3t1AOzUfe8y-14hH4n0LnIow/exec';
+  var FNS = 'getInitialData getActiveRecord punchInChecked punchOut setRecordNote getLeaveInfo getPendingCount adminOpen submitLeave submitCompLeave cancelLeave verifyAdminPin changeAdminPin getAdminLeaves decideLeave resetLeave getMonthData updateRecordField addManualRecord deleteRecord getStaffList addStaff setStaffNight setStaffMulti setStaffPaid setStaffUsed removeStaff setPayrollField getPayrollData exportPayrollCsv exportPayrollExcel exportMonthCsv exportMonthExcel getMyShifts saveMyWish getShiftMonth setFixedShift applyWishesToFixed publishShiftMonth getPublishedShift setStaffHours exportShiftExcel'.split(' ');
+  var INIT_KEY = 'kintai_fast_init';
+  var REC_KEY = 'kintai_fast_rec_';
+  var REC_REUSE_MS = 20000;   // 先読みした打刻状態を使い回してよい時間
+
+  function pad2(n){ return ('0'+n).slice(-2); }
+  function deviceDate(){ var d=new Date(); return d.getFullYear()+'-'+pad2(d.getMonth()+1)+'-'+pad2(d.getDate()); }
+  function readJson(k){ try{ return JSON.parse(localStorage.getItem(k)); }catch(e){ return null; } }
+  function writeJson(k,v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} }
+
+  function fetchApi(fn, args){
+    var ctrl = window.AbortController ? new AbortController() : null;
+    var timer = ctrl ? setTimeout(function(){ ctrl.abort(); }, 30000) : null;
+    return fetch(API_URL, {
+      method:'POST', redirect:'follow',
+      headers:{'Content-Type':'text/plain;charset=utf-8'},   // text/plain にして事前確認(CORS)を避ける
+      body:JSON.stringify({fn:fn, args:args}),
+      keepalive: fn==='punchInChecked'||fn==='punchOut',
+      signal: ctrl ? ctrl.signal : undefined
+    }).then(function(r){
+      if(timer) clearTimeout(timer);
+      if(!r.ok) throw new Error('通信に失敗しました ('+r.status+')');
+      return r.json();
+    }).then(function(j){
+      if(!j.ok) throw new Error(j.error||'処理に失敗しました');
+      return j.result;
+    }, function(e){
+      if(timer) clearTimeout(timer);
+      throw e;
+    });
+  }
+  function transport(fn, args){ return (window.KINTAI_TRANSPORT||fetchApi)(fn, args); }
+
+  var fixedMe = '';
+  try{ fixedMe = new URLSearchParams(location.search).get('me')||''; }catch(e){}
+
+  var lastToday = '';
+  var recJobs = {};           // 氏名 -> {p:Promise, t:開始時刻}
+  var usedInitCache = false;
+
+  function saveRec(name, rec){ writeJson(REC_KEY+name, {day:lastToday||deviceDate(), rec:rec}); }
+
+  function fetchRec(name){
+    var job = recJobs[name];
+    if(job && Date.now()-job.t < REC_REUSE_MS) return job.p;
+    var mine = {t:Date.now()};
+    mine.p = transport('getActiveRecord',[name]).then(function(rec){
+      saveRec(name, rec);
+      return rec;
+    }, function(e){
+      if(recJobs[name]===mine) delete recJobs[name];   // 失敗は使い回さない
+      throw e;
+    });
+    recJobs[name] = mine;
+    return mine.p;
+  }
+
+  function fetchInit(){
+    return transport('getInitialData',[]).then(function(d){
+      if(d && d.today){ lastToday=d.today; writeJson(INIT_KEY,d); }
+      return d;
+    });
+  }
+
+  function call(fn, args){
+    if(fn==='getInitialData'){
+      if(!window.KINTAI_FAST.initServed){
+        window.KINTAI_FAST.initServed = true;
+        var c = readJson(INIT_KEY);
+        if(c && c.staff && c.staff.length && (!fixedMe || c.staff.indexOf(fixedMe)>=0)){
+          usedInitCache = true;
+          c.today = deviceDate();         // 正しい日付はこのあと syncDate で確認する
+          lastToday = c.today;
+          return Promise.resolve(c);
+        }
+      }
+      return fetchInit();
+    }
+    if(fn==='getActiveRecord') return fetchRec(args[0]);
+    return transport(fn,args).then(function(res){
+      if(!/^(get|verify|export)/.test(fn)) recJobs = {};   // 書き込み後は先読み結果を捨てる
+      if(fn==='punchInChecked'||fn==='punchOut'||fn==='setRecordNote') saveRec(args[0], res);
+      return res;
+    });
+  }
+
+  function Runner(ok, fail){ this._ok=ok; this._fail=fail; }
+  Runner.prototype.withSuccessHandler = function(f){ return new Runner(f,this._fail); };
+  Runner.prototype.withFailureHandler = function(f){ return new Runner(this._ok,f); };
+  FNS.forEach(function(name){
+    Runner.prototype[name] = function(){
+      var ok=this._ok, fail=this._fail, args=Array.prototype.slice.call(arguments);
+      call(name,args).then(function(r){ if(ok) ok(r); }, function(e){ if(fail) fail(e); });
+    };
+  });
+
+  window.google = { script: { run: new Runner() } };
+  window.KINTAI_FAST = {
+    initServed:false,
+    usedInitCache:function(){ return usedInitCache; },
+    setToday:function(d){ lastToday=d; },
+    readRec:function(name){ return readJson(REC_KEY+name); },
+    prefetchRec:function(name){ if(name) fetchRec(name).then(null,function(){}); }
+  };
+
+  // 起動と同時に、自分の打刻状態を裏で取りに行く
+  window.KINTAI_FAST.prefetchRec(fixedMe || (function(){ try{ return localStorage.getItem('kintai_my_name'); }catch(e){ return ''; } })());
+})();
+
+</script>
+<script>
+// ============================================================
+// 勤怠管理アプリ クライアント
+//   screen: home | employee | admin
+// ============================================================
+var App = {
+  screen: 'home',
+  empTab: 'punch',        // punch | leave
+  admTab: 'approve',      // approve | attendance | staff
+  pin: null,              // 管理者認証済みのPIN (メモリ保持のみ)
+  staff: [],
+  nightStaff: [],         // 夜勤OKのスタッフ名
+  multiStaff: [],         // 別シフトOK(1日2回出勤可)のスタッフ名
+  myName: null,
+  locked: false,          // この端末を1人の担当者で固定しているか
+  company: '',            // 会社名
+  pendingCount: 0,        // 有給の承認待ち件数(管理者)
+  today: '',
+  standardMin: 480,
+  closingDay: 25,         // 締め日 (毎月この日で締める)
+  todayRecord: null,
+  leaveInfo: null,        // 従業員: 有給情報
+  leaveType: 'full',      // 申請フォームの種別
+  leaveKind: 'paid',      // 申請の種類: paid(有給) | comp(代休)
+  monthKey: '',
+  monthData: null,
+  payrollData: null,      // 管理者: 給与計算データ (勤怠連携)
+  adminLeaves: null,      // 管理者: 有給承認データ
+  staffList: null,        // 管理者: スタッフ一覧
+  rePunch: false,         // 打刻: 退勤後に「別シフトで再出勤」を選んだ状態
+  loadingPunch: false,
+  // ---- シフト ----
+  shiftMonth: '',         // シフトの対象月 (カレンダー月 yyyy-MM)
+  shiftSub: 'table',      // 従業員シフト: table(確定を見る) | wish(希望を出す)
+  calMode: 'cal',         // 確定シフトの表示: cal(月間カレンダー) | list(一覧)
+  pubShift: null,         // 公開された確定シフト (閲覧用)
+  myShifts: null,         // 従業員: 自分の希望/確定
+  shiftWish: {},          // 希望入力の下書き {date:type}
+  admShift: null          // 管理者: 全員グリッド
+};
+
+// シフト種別の表示色クラス
+function shiftClass(type){ return {'早番':'sh-early','日勤':'sh-day','遅番':'sh-late','夜勤':'sh-night','リモート':'sh-remote','午前休':'sh-half','午後休':'sh-half','休':'sh-off','有':'sh-paid'}[type]||''; }
+// カレンダー月の日付配列
+function monthDatesJs(mk){ var p=mk.split('-'),y=+p[0],m=+p[1]; var n=new Date(y,m,0).getDate(); var out=[]; for(var d=1;d<=n;d++) out.push(mk+'-'+pad(d)); return out; }
+function isWeekend(dateStr){ var w=new Date(dateStr+'T00:00:00').getDay(); return w===0?'sun':(w===6?'sat':''); }
+// 行のクラス: 週末色＋月曜(週の始まり)に区切り線
+function dayCls(dateStr){ var w=new Date(dateStr+'T00:00:00').getDay(); var c=[]; if(w===0)c.push('we-sun'); if(w===6)c.push('we-sat'); if(w===1)c.push('wk-start'); return c.join(' '); }
+
+// ---------- ユーティリティ ----------
+function $(id){ return document.getElementById(id); }
+function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];}); }
+function jstr(s){ return String(s).replace(/\\/g,'\\\\').replace(/'/g,"\\'"); }
+var _toastTimer;
+function toast(msg){ var t=$('toast'); if(!t)return; t.textContent=msg; t.classList.add('show'); clearTimeout(_toastTimer); _toastTimer=setTimeout(function(){t.classList.remove('show');},2400); }
+function pad(n){ return ('0'+n).slice(-2); }
+function minToHHMM(min){ min=Math.round(Number(min)||0); return Math.floor(min/60)+':'+pad(min%60); }
+function fmtDays(d){ return (Math.round(Number(d)*10)/10).toString(); }
+function comma(n){ n=Math.round(Number(n)||0); return n.toLocaleString('ja-JP'); }
+function yen(n){ return '¥'+comma(n); }
+function statusLabel(s){ return {off:'未出勤',working:'勤務中','break':'休憩中',done:'退勤済'}[s]||'未出勤'; }
+function leaveStatusLabel(s){ return {pending:'承認待ち',approved:'承認済み',rejected:'却下'}[s]||s; }
+function ymLabel(k){ var p=k.split('-'); return p[0]+'年'+parseInt(p[1],10)+'月'; }
+function fmtMd(dateStr){ var p=dateStr.split('-'); return parseInt(p[1],10)+'/'+parseInt(p[2],10); }
+// 締め日を考慮した「対象月度」。締め日を過ぎていれば翌月度
+function periodMonthOf(dateStr, closingDay){ var y=+dateStr.slice(0,4),m=+dateStr.slice(5,7),d=+dateStr.slice(8,10); if(d>closingDay){m++; if(m>12){m=1;y++;}} return y+'-'+pad(m); }
+function currentYM(){ var d=new Date(); return d.getFullYear()+'-'+pad(d.getMonth()+1); }
+function shiftYM(k,delta){ var p=k.split('-'); var d=new Date(parseInt(p[0],10),parseInt(p[1],10)-1+delta,1); return d.getFullYear()+'-'+pad(d.getMonth()+1); }
+function wdOf(dateStr){ return ['日','月','火','水','木','金','土'][new Date(dateStr+'T00:00:00').getDay()]; }
+function mdLabel(dateStr){ var p=dateStr.split('-'); return parseInt(p[1],10)+'/'+parseInt(p[2],10)+'('+wdOf(dateStr)+')'; }
+function rangeLabel(a,b){ if(!b||b===a) return mdLabel(a); return mdLabel(a)+'〜'+mdLabel(b); }
+
+// ---------- 起動 ----------
+window.addEventListener('DOMContentLoaded', function(){
+  App.myName = localStorage.getItem('kintai_my_name');
+  App.locked = localStorage.getItem('kintai_locked')==='yes';
+  App.monthKey = currentYM();
+  google.script.run
+    .withSuccessHandler(function(data){
+      App.staff=data.staff||[]; App.nightStaff=data.nightStaff||[]; App.multiStaff=data.multiStaff||[]; App.today=data.today; App.standardMin=data.standardMin||480;
+      App.company=data.company||''; App.closingDay=data.closingDay||25; App.monthKey=periodMonthOf(App.today, App.closingDay);
+      App.shiftMonth=periodMonthOf(App.today, App.closingDay);     // シフトも25日締めの月度
+      _lastSync = Date.now();                                   // 直後のpageshowで二重取得しないように
+      if(browserDate() !== App.today) _dateCheckOn = false;      // 端末とサーバーの日付がずれる環境では日跨ぎ判定を止める
+      if(App.myName && App.staff.indexOf(App.myName)===-1){ App.myName=null; App.locked=false; localStorage.setItem('kintai_locked',''); }
+      if(!App.myName && App.staff.length) App.myName=App.staff[0];
+      // ホーム画面ショートカットのURL(?me=氏名)で担当者を固定（localStorageより確実・再デプロイでも消えない）
+      var _fixedMe = (window.FIXED_ME||'');
+      if(!_fixedMe){ try{ _fixedMe = new URLSearchParams(location.search).get('me')||''; }catch(e){} }
+      if(_fixedMe && App.staff.indexOf(_fixedMe)>=0){ App.myName=_fixedMe; App.locked=true; localStorage.setItem('kintai_my_name',_fixedMe); }
+      render();
+    })
+    .withFailureHandler(function(err){ $('root').innerHTML='<div class="empty-hint">読み込みに失敗しました。<br>'+esc(err&&err.message)+'</div>'; })
+    .getInitialData();
+});
+
+// ---------- 時計 ----------
+var _clockTimer;
+function startClock(){ stopClock(); updateClock(); _clockTimer=setInterval(updateClock,1000); }
+function stopClock(){ if(_clockTimer){ clearInterval(_clockTimer); _clockTimer=null; } }
+function updateClock(){
+  var el=$('clockNow'); if(!el){ stopClock(); return; }
+  var d=new Date(); el.textContent=pad(d.getHours())+':'+pad(d.getMinutes())+':'+pad(d.getSeconds());
+  // 日付が変わったら(日跨ぎ)サーバー日付を取り直す
+  if(_dateCheckOn && App.today && browserDate()!==App.today) syncDate(false);
+}
+
+// ---------- 日付の自動更新 ----------
+// スマホはアプリを閉じても画面が保存され、開き直しても古い日付のままになることがある。
+// 「再表示・画面復帰・日跨ぎ」でサーバー日付を取り直して画面を最新にする。
+var _dateCheckOn = true;   // 端末とサーバーの日付がずれる環境ではオフにする
+var _syncing = false;
+var _lastSync = 0;
+function browserDate(){ var d=new Date(); return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate()); }
+
+function syncDate(force){
+  var now = Date.now();
+  if(_syncing) return;
+  if(!force && now-_lastSync < 30000) return;  // 連続実行を防ぐ(30秒に1回まで)
+  _syncing = true; _lastSync = now;
+  google.script.run
+    .withSuccessHandler(function(data){
+      _syncing = false;
+      if(!data || !data.today) return;
+      var changed = (data.today !== App.today);
+      App.staff = data.staff || App.staff;
+      App.nightStaff = data.nightStaff || App.nightStaff;
+      App.multiStaff = data.multiStaff || App.multiStaff;
+      App.standardMin = data.standardMin || App.standardMin;
+      App.closingDay = data.closingDay || App.closingDay;
+      App.company = data.company || App.company;
+      App.today = data.today;
+      // 端末の日付とサーバー日付がずれている環境では日跨ぎ判定を止める
+      if(browserDate() !== App.today) _dateCheckOn = false;
+      if(changed){
+        App.todayRecord = null; App.rePunch = false;
+        if(App.screen==='employee'){
+          renderEmployee();
+          if(App.empTab==='punch') loadTodayRecord(); else loadLeaveInfo();
+        }
+      }
+    })
+    .withFailureHandler(function(){ _syncing = false; })
+    .getInitialData();
+}
+
+// 画面が再表示された時(ホーム画面から開き直し・スリープ復帰など)に日付を取り直す
+// persisted=true はブラウザが保存した画面をそのまま復元したケース → 必ず取り直す
+window.addEventListener('pageshow', function(e){ syncDate(!!(e && e.persisted)); });
+document.addEventListener('visibilitychange', function(){ if(!document.hidden) syncDate(false); });
+
+// ============================================================
+// ルート描画
+// ============================================================
+function render(){
+  stopClock();
+  if(App.screen==='home') renderHome();
+  else if(App.screen==='employee') renderEmployee();
+  else if(App.screen==='admin') renderAdmin();
+}
+
+function goHome(){ App.screen='home'; render(); }
+
+// ============================================================
+// ホーム (モード選択)
+// ============================================================
+function renderHome(){
+  $('root').innerHTML = ''
+    + '<div class="home">'
+    + '  <div class="home-avatar"><img class="home-logo" src="data:image/png;base64,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" alt="BF"></div>'
+    + (App.company?'  <div class="home-company">'+esc(App.company)+'</div>':'')
+    + '  <h1 class="home-title">勤怠管理</h1>'
+    + '  <div class="home-sub">モードを選んでください</div>'
+    + '  <div class="mode-list">'
+    + '    <button class="mode-card" onclick="enterEmployee()">'
+    + '      <div class="mode-ico emp">🕐</div>'
+    + '      <div class="mode-text"><div class="t">従業員モード</div><div class="s">打刻・有給・代休の申請はこちら</div></div>'
+    + '    </button>'
+    + '    <button class="mode-card" onclick="enterAdmin()">'
+    + '      <div class="mode-ico adm">🔑</div>'
+    + '      <div class="mode-text"><div class="t">管理者モード</div><div class="s">休暇の承認・勤怠確認はこちら</div></div>'
+    + '    </button>'
+    + '  </div>'
+    + '</div>';
+}
+
+// ============================================================
+// 従業員モード
+// ============================================================
+function enterEmployee(){ App.screen='employee'; App.empTab='punch'; render(); loadTodayRecord(); }
+
+function renderEmployee(){
+  var d = App.today?new Date(App.today+'T00:00:00'):new Date();
+  var dateLabel = (d.getMonth()+1)+'/'+d.getDate()+'('+['日','月','火','水','木','金','土'][d.getDay()]+')';
+  var html = ''
+    + appbar('従業員モード', dateLabel)
+    + '<div class="wrap">'
+    + '  <div class="segmented">'
+    + '    <button class="seg'+(App.empTab==='punch'?' active':'')+'" onclick="empTab(\'punch\')">打刻</button>'
+    + '    <button class="seg'+(App.empTab==='leave'?' active':'')+'" onclick="empTab(\'leave\')">有給・代休</button>'
+    + '  </div>'
+    + '  <div id="empView"></div>'
+    + '</div>';
+  $('root').innerHTML = html;
+  renderEmpView();
+}
+
+function appbar(title, dateLabel){
+  return '<div class="appbar">'
+    + '<button class="back-btn" onclick="goHome()">‹</button>'
+    + '<div class="appbar-title">'+esc(title)+'</div>'
+    + '<div class="appbar-spacer"></div>'
+    + (dateLabel?'<div class="appbar-date">'+esc(dateLabel)+'</div>':'')
+    + '</div>';
+}
+
+function empTab(t){ App.empTab=t; renderEmployee(); if(t==='punch') loadTodayRecord(); else if(t==='leave') loadLeaveInfo(); else loadShiftSub(); }
+
+function renderEmpView(){
+  if(App.empTab==='punch') renderPunch();
+  else if(App.empTab==='leave') renderLeave();
+  else renderShift();
+}
+
+// ---------- 打刻 ----------
+function kubunClass(rec){ var w=rec&&rec.workType; return w==='夜勤'?'night':(w==='リモート'?'remote':'office'); }
+
+function renderPunch(){
+  var v=$('empView'); if(!v) return;
+  if(!App.staff.length){ v.innerHTML='<div class="empty-hint">スタッフが登録されていません。<br>管理者モードから追加してください。</div>'; return; }
+  var opts=App.staff.map(function(s){ return '<option value="'+esc(s)+'"'+(s===App.myName?' selected':'')+'>'+esc(s)+'</option>'; }).join('');
+  var rec=App.todayRecord, status=rec?rec.status:'off';
+  var work=(rec&&rec.worked!=null)?minToHHMM(rec.worked):'—';
+  var kubunChip=(status!=='off'&&rec&&rec.kubun)?'<span class="kubun-chip k-'+kubunClass(rec)+'">'+esc(rec.kubun)+'</span>':'';
+
+  // 業務内容(備考)欄: 勤務中は入力、退勤済は表示
+  var noteBlock='';
+  if(status==='working'){
+    noteBlock = '<div class="card">'
+      + '<div class="card-title">業務内容（今日やったこと）</div>'
+      + '<textarea id="workNote" class="work-note" placeholder="例：〇〇現場 電気配線">'+esc(rec&&rec.note?rec.note:'')+'</textarea>'
+      + '<button class="btn block" onclick="saveNote()">業務内容を保存</button>'
+      + '</div>';
+  } else if(status==='done' && rec && rec.note){
+    noteBlock = '<div class="card"><div class="card-title">業務内容</div><div class="done-note">'+esc(rec.note)+'</div></div>';
+  }
+
+  v.innerHTML = ''
+    + whoSelector('氏名を選んでください')
+    + '<div class="card status-card">'
+    + '  <div class="status-line"><span class="status-badge status-'+status+'"><span class="dot"></span>'+statusLabel(status)+'</span>'+kubunChip+'</div>'
+    + '  <div class="clock-now" id="clockNow">--:--:--</div>'
+    + '  <div class="clock-date">'+esc(App.today)+'</div>'
+    + '  <div class="time-summary">'
+    + '    <div class="cell"><span class="lbl">出勤</span><span class="val">'+esc(rec&&rec.clockIn?rec.clockIn:'—')+'</span></div>'
+    + '    <div class="cell"><span class="lbl">退勤</span><span class="val">'+esc(rec&&rec.clockOut?rec.clockOut:'—')+'</span></div>'
+    + '    <div class="cell"><span class="lbl">休憩</span><span class="val">'+(rec&&rec.breakMin!=null?rec.breakMin:60)+'分</span></div>'
+    + '    <div class="cell"><span class="lbl">勤務時間</span><span class="val">'+work+'</span></div>'
+    + '  </div>'
+    + '</div>'
+    + noteBlock
+    + punchActions(status, rec);
+  startClock();
+}
+
+function punchActions(status, rec){
+  var dis=App.loadingPunch?' disabled':'';
+  var canNight = App.nightStaff.indexOf(App.myName)>=0;   // 夜勤ボタンを出すか
+  var canMulti = App.multiStaff.indexOf(App.myName)>=0;   // 別シフト(2回目の出勤)を許すか
+  if(status==='off' || (status==='done' && App.rePunch && canMulti)){
+    // 夜勤OKの人は「出社・夜勤」、それ以外は「出社・リモート」
+    return '<div class="punch-buttons">'
+      + '<button class="punch-btn in" onclick="doPunchIn(\'出社\')"'+dis+'><span class="ico">▶</span>出勤（出社）</button>'
+      + (canNight
+          ? '<button class="punch-btn night" onclick="doPunchIn(\'夜勤\')"'+dis+'><span class="ico">🌙</span>夜勤出勤</button>'
+          : '<button class="punch-btn remote" onclick="doPunchIn(\'リモート\')"'+dis+'><span class="ico">🏠</span>リモート出勤</button>')
+      + '</div>';
+  }
+  if(status==='working'){
+    var w=rec&&rec.workType;
+    var cls=(w==='リモート')?'remote':(w==='夜勤')?'night':'out';
+    var lbl=(w==='リモート')?'リモート退勤':(w==='夜勤')?'夜勤退勤':'退勤';
+    return '<div class="punch-buttons"><button class="punch-btn '+cls+'" onclick="doPunchOut()"'+dis+'><span class="ico">■</span>'+lbl+'</button></div>';
+  }
+  // done: 別シフトOKの人は「別のシフトで出勤」で2回目の出勤ができる
+  return '<div class="done-msg">本日は退勤済みです。<br>お疲れさまでした。</div>'
+    + (canMulti?'<button class="btn ghost block" style="margin-top:12px;" onclick="startRePunch()">＋ 別のシフトで出勤する</button>':'');
+}
+
+function startRePunch(){ App.rePunch=true; renderPunch(); }
+
+function onWhoChange(name){ App.myName=name; localStorage.setItem('kintai_my_name',name); App.todayRecord=null; App.rePunch=false; if(App.empTab==='leave') loadLeaveInfo(); else loadTodayRecord(); }
+
+// 氏名セレクタ。この端末が固定されていれば固定表示、そうでなければ選択欄＋固定ボタン
+function whoSelector(heading){
+  if(App.locked && App.myName && App.staff.indexOf(App.myName)>=0){
+    return '<div class="who-fixed">'
+      + '<div><div class="who-fixed-lbl">担当者（この端末）</div><div class="who-fixed-name">'+esc(App.myName)+'</div></div>'
+      + '<button class="who-change" onclick="unlockWho()">変更</button></div>';
+  }
+  var opts=App.staff.map(function(s){ return '<option value="'+esc(s)+'"'+(s===App.myName?' selected':'')+'>'+esc(s)+'</option>'; }).join('');
+  return '<div class="who-label">'+esc(heading||'氏名を選んでください')+'</div>'
+    + '<select class="who-select" id="whoSelect" onchange="onWhoChange(this.value)">'+opts+'</select>'
+    + '<button class="btn ghost block who-lock" onclick="lockWho()">🔒 この端末を「'+esc(App.myName||'')+'」で固定する</button>';
+}
+
+// この端末を今の担当者で固定する（うっかり他人の打刻を防ぐ）
+function lockWho(){
+  if(!App.myName){ toast('先に氏名を選んでください'); return; }
+  App.locked=true;
+  localStorage.setItem('kintai_locked','yes');
+  localStorage.setItem('kintai_my_name', App.myName);
+  toast('この端末を「'+App.myName+'」で固定しました');
+  renderEmpView();
+}
+
+// 固定を解除して担当者を選び直す
+function unlockWho(){
+  if(!confirm('担当者を変更しますか？\nこの端末の固定を解除して、氏名を選び直せるようにします。')) return;
+  App.locked=false;
+  localStorage.setItem('kintai_locked','');
+  renderEmpView();
+}
+
+function loadTodayRecord(){
+  if(!App.myName) return;
+  google.script.run
+    .withSuccessHandler(function(rec){ App.todayRecord=rec; if(App.screen==='employee'&&App.empTab==='punch') renderPunch(); })
+    .withFailureHandler(function(){ toast('取得に失敗しました'); })
+    .getActiveRecord(App.myName);
+}
+
+// 出勤 (出社 / リモート / 夜勤)
+function doPunchIn(workType){
+  if(App.loadingPunch||!App.myName) return;
+  App.loadingPunch=true; renderPunch();
+  google.script.run
+    .withSuccessHandler(function(rec){ App.loadingPunch=false; App.rePunch=false; App.todayRecord=rec; renderPunch();
+      toast(workType==='出社'?'出勤しました':workType+'で出勤しました'); })
+    .withFailureHandler(function(){ App.loadingPunch=false; renderPunch(); toast('打刻に失敗しました'); })
+    .punchIn(App.myName, workType);
+}
+
+// 退勤: 入力中の業務内容も一緒に保存
+function doPunchOut(){
+  if(App.loadingPunch||!App.myName) return;
+  var note=($('workNote')&&$('workNote').value)||'';
+  App.loadingPunch=true; renderPunch();
+  google.script.run
+    .withSuccessHandler(function(rec){ App.loadingPunch=false; App.rePunch=false; App.todayRecord=rec; renderPunch(); toast('退勤しました。お疲れさまでした'); })
+    .withFailureHandler(function(){ App.loadingPunch=false; renderPunch(); toast('打刻に失敗しました'); })
+    .punchOut(App.myName, note);
+}
+
+// 業務内容を保存 (勤務中に随時)
+function saveNote(){
+  if(!App.myName) return;
+  var note=($('workNote')&&$('workNote').value)||'';
+  google.script.run
+    .withSuccessHandler(function(rec){ App.todayRecord=rec; toast('業務内容を保存しました'); })
+    .withFailureHandler(function(){ toast('保存に失敗しました'); })
+    .setRecordNote(App.myName, note);
+}
+
+// ---------- 有給申請 ----------
+function loadLeaveInfo(){
+  if(!App.myName){ App.leaveInfo=null; renderLeave(); return; }
+  google.script.run
+    .withSuccessHandler(function(info){ App.leaveInfo=info; if(App.screen==='employee'&&App.empTab==='leave') renderLeave(); })
+    .withFailureHandler(function(){ toast('取得に失敗しました'); })
+    .getLeaveInfo(App.myName);
+}
+
+function renderLeave(){
+  var v=$('empView'); if(!v) return;
+  if(!App.staff.length){ v.innerHTML='<div class="empty-hint">スタッフが登録されていません。</div>'; return; }
+  var opts=App.staff.map(function(s){ return '<option value="'+esc(s)+'"'+(s===App.myName?' selected':'')+'>'+esc(s)+'</option>'; }).join('');
+  var info=App.leaveInfo;
+  var banner = info
+    ? '<div class="paid-banner"><div><div class="lead">'+esc(App.myName)+' さんの有給残</div></div>'
+      + '<div style="text-align:right;"><div class="paid-num">'+fmtDays(info.remaining)+'<small>日</small></div>'
+      + '<div class="paid-sub">付与'+fmtDays(info.granted)+'日 / 消化'+fmtDays(info.used)+'日</div></div></div>'
+    : '<div class="paid-banner"><div class="lead">残日数を読み込み中…</div></div>';
+
+  var isHalf = (App.leaveType==='am'||App.leaveType==='pm');
+  var isComp = (App.leaveKind==='comp');
+  var form = whoSelector('申請者')
+    + '<div class="card">'
+    + '<div class="card-title">'+(isComp?'代休':'有給')+'を申請する</div>'
+    + '<div class="field"><label>申請の種類</label><div class="type-choices">'
+    + kindChoice('paid','有給') + kindChoice('comp','代休')
+    + '</div></div>'
+    + (isComp?'<div class="field"><label>休日出勤した日</label><input type="date" id="lvWorked"></div>':'')
+    + '<div class="field"><label>種別</label><div class="type-choices">'
+    + typeChoice('full','1日') + typeChoice('am','午前半休') + typeChoice('pm','午後半休')
+    + '</div></div>'
+    + '<div class="field"><label>'+(isHalf?'取得日':'開始日')+'</label><input type="date" id="lvStart" value="'+esc(App.today)+'" onchange="syncLeaveEnd()"></div>'
+    + (isHalf?'':'<div class="field"><label>終了日（1日だけなら開始日と同じでOK）</label><input type="date" id="lvEnd" value="'+esc(App.today)+'"></div>')
+    + '<div class="field"><label>理由（任意）</label><textarea id="lvReason" placeholder="例: 私用のため"></textarea></div>'
+    + '<button class="btn primary block" onclick="submitLeave()">申請する</button>'
+    + '</div>';
+
+  var list = '<div class="card-title" style="margin-top:6px;">申請の履歴</div>';
+  if(info && info.requests.length){
+    list += info.requests.map(function(r){
+      var cancel = r.status==='pending' ? '<div class="leave-actions"><button class="btn reject" onclick="cancelLeave(\''+r.id+'\')">取り下げる</button></div>' : '';
+      return '<div class="leave-item">'
+        + '<div class="leave-top"><div class="leave-when">'+esc(rangeLabel(r.startDate,r.endDate))+'</div><span class="st-pill '+r.status+'">'+leaveStatusLabel(r.status)+'</span></div>'
+        + '<div class="leave-meta">'+leaveMeta(r)+'</div>'
+        + (r.reason?'<div class="leave-reason">'+esc(r.reason)+'</div>':'')
+        + cancel + '</div>';
+    }).join('');
+  } else if(info){
+    list += '<div class="empty-hint">まだ申請はありません。</div>';
+  }
+  v.innerHTML = banner + form + list;
+}
+
+function typeChoice(val,label){
+  return '<button class="type-choice'+(App.leaveType===val?' active':'')+'" onclick="setLeaveType(\''+val+'\')">'+label+'</button>';
+}
+function kindChoice(val,label){
+  return '<button class="type-choice'+(App.leaveKind===val?' active':'')+'" onclick="setLeaveKind(\''+val+'\')">'+label+'</button>';
+}
+// 履歴に出す1行: 代休なら種類と休日出勤日も出す
+function leaveMeta(r){
+  var s=(r.kind==='代休'?'代休 ・ ':'')+esc(r.typeLabel)+' ・ '+fmtDays(r.days)+'日';
+  if(r.kind==='代休'&&r.workedDate) s+=' ・ 休日出勤 '+esc(mdLabel(r.workedDate));
+  return s;
+}
+// 入力済みの内容を保ったままフォームを描き直す
+function redrawLeaveForm(change){
+  var ids=['lvStart','lvEnd','lvReason','lvWorked'], vals={};
+  ids.forEach(function(id){ var el=$(id); if(el) vals[id]=el.value; });
+  change(); renderLeave();
+  ids.forEach(function(id){ var el=$(id); if(el&&vals[id]!==undefined) el.value=vals[id]; });
+}
+function setLeaveType(t){ redrawLeaveForm(function(){ App.leaveType=t; }); }
+function setLeaveKind(k){ redrawLeaveForm(function(){ App.leaveKind=k; }); }
+function syncLeaveEnd(){ var s=$('lvStart'),e=$('lvEnd'); if(s&&e&&(!e.value||e.value<s.value)) e.value=s.value; }
+
+function submitLeave(){
+  var start=$('lvStart').value;
+  if(!start){ toast('日付を選んでください'); return; }
+  var isHalf=(App.leaveType==='am'||App.leaveType==='pm');
+  var end=isHalf?start:(($('lvEnd')&&$('lvEnd').value)||start);
+  var reason=($('lvReason')&&$('lvReason').value)||'';
+  var isComp=(App.leaveKind==='comp');
+  var worked=($('lvWorked')&&$('lvWorked').value)||'';
+  if(isComp&&!worked){ toast('休日出勤した日を選んでください'); return; }
+  var run=google.script.run
+    .withSuccessHandler(function(res){ if(!res.ok){ toast('申請できませんでした'); return; } App.leaveInfo=res.info; toast((isComp?'代休':'有給')+'を申請しました'); renderLeave(); })
+    .withFailureHandler(function(){ toast('申請に失敗しました'); });
+  if(isComp) run.submitCompLeave(App.myName, start, end, App.leaveType, reason, worked);
+  else run.submitLeave(App.myName, start, end, App.leaveType, reason);
+}
+
+function cancelLeave(id){
+  if(!confirm('この申請を取り下げますか？')) return;
+  google.script.run
+    .withSuccessHandler(function(res){ if(res.ok){ App.leaveInfo=res.info; toast('取り下げました'); renderLeave(); } else toast('取り下げできませんでした'); })
+    .withFailureHandler(function(){ toast('失敗しました'); })
+    .cancelLeave(App.myName, id);
+}
+
+// ============================================================
+// 管理者モード
+// ============================================================
+function enterAdmin(){
+  App.screen='admin';
+  if(App.pin){ App.admTab='approve'; render(); loadAdminLeaves(true); }
+  else render();
+}
+
+function renderAdmin(){
+  if(!App.pin){ renderPinGate(); return; }
+  var html = ''
+    + appbar('管理者モード','')
+    + '<div class="wrap">'
+    + '  <div class="segmented seg4">'
+    + '    <button class="seg'+(App.admTab==='approve'?' active':'')+'" onclick="admTab(\'approve\')">休暇'+(App.pendingCount>0?'<span class="seg-badge">'+App.pendingCount+'</span>':'')+'</button>'
+    + '    <button class="seg'+(App.admTab==='attendance'?' active':'')+'" onclick="admTab(\'attendance\')">勤怠</button>'
+    + '    <button class="seg'+(App.admTab==='payroll'?' active':'')+'" onclick="admTab(\'payroll\')">給与</button>'
+    + '    <button class="seg'+(App.admTab==='staff'?' active':'')+'" onclick="admTab(\'staff\')">スタッフ</button>'
+    + '  </div>'
+    + '  <div id="admView"></div>'
+    + '</div>';
+  $('root').innerHTML = html;
+  renderAdmView();
+}
+
+function renderPinGate(){
+  $('root').innerHTML = ''
+    + appbar('管理者モード','')
+    + '<div class="wrap"><div class="pin-gate">'
+    + '  <div class="pin-lock">🔒</div>'
+    + '  <h2>パスワードを入力</h2>'
+    + '  <p>管理者モードを開くには暗証番号が必要です</p>'
+    + '  <input class="pin-input" id="pinInput" type="password" inputmode="numeric" maxlength="8" placeholder="••••" onkeydown="if(event.key===\'Enter\')submitPin()">'
+    + '  <div style="margin-top:16px;"><button class="btn primary block" onclick="submitPin()">開く</button></div>'
+    + '</div></div>';
+  setTimeout(function(){ var el=$('pinInput'); if(el) el.focus(); },80);
+}
+
+function submitPin(){
+  var pin=($('pinInput')&&$('pinInput').value||'').trim();
+  if(!pin){ toast('暗証番号を入力してください'); return; }
+  google.script.run
+    .withSuccessHandler(function(res){
+      if(res.ok){ App.pin=pin; App.admTab='approve'; render(); loadAdminLeaves(true); }
+      else { toast('暗証番号が違います'); var el=$('pinInput'); if(el){ el.value=''; el.focus(); } }
+    })
+    .withFailureHandler(function(){ toast('認証に失敗しました'); })
+    .verifyAdminPin(pin);
+}
+
+function admTab(t){
+  App.admTab=t; renderAdmin();
+  if(t==='approve') loadAdminLeaves();
+  else if(t==='attendance') loadMonth();
+  else if(t==='shift') loadAdminShift();
+  else if(t==='payroll') loadPayroll();
+  else if(t==='staff') loadStaffList();
+}
+
+function renderAdmView(){
+  if(App.admTab==='approve') renderApprove();
+  else if(App.admTab==='attendance') renderAttendance();
+  else if(App.admTab==='shift') renderAdminShift();
+  else if(App.admTab==='payroll') renderPayroll();
+  else if(App.admTab==='staff') renderStaffAdmin();
+}
+
+// ---------- 有給承認 ----------
+function loadAdminLeaves(announce){
+  google.script.run
+    .withSuccessHandler(function(data){
+      App.adminLeaves=data;
+      App.pendingCount = data.requests.filter(function(r){return r.status==='pending';}).length;
+      if(announce && App.pendingCount>0) toast('承認待ちの申請が '+App.pendingCount+' 件あります');
+      if(App.screen==='admin') renderAdmin();
+    })
+    .withFailureHandler(function(err){ toast('取得に失敗: '+(err&&err.message||'')); })
+    .getAdminLeaves(App.pin);
+}
+
+function renderApprove(){
+  var v=$('admView'); if(!v) return;
+  var d=App.adminLeaves;
+  if(!d){ v.innerHTML='<div class="empty-hint"><div class="spinner" style="margin:0 auto 10px;"></div>読み込み中…</div>'; return; }
+  var bal='<div class="card-title">有給残日数</div><div class="bal-grid" style="margin-bottom:18px;">'
+    + d.balances.map(function(b){ return '<div class="bal-cell"><div class="nm">'+esc(b.staff)+'</div><div class="rm">'+fmtDays(b.remaining)+'<small>日</small></div><div class="gr">付与'+fmtDays(b.granted)+' / 消化'+fmtDays(b.used)+'</div></div>'; }).join('')
+    + '</div>';
+  var pending=d.requests.filter(function(r){return r.status==='pending';});
+  var decided=d.requests.filter(function(r){return r.status!=='pending';});
+  var list='<div class="card-title">承認待ち'+(pending.length?'（'+pending.length+'件）':'')+'</div>';
+  list += pending.length ? pending.map(leaveAdminItem).join('') : '<div class="empty-hint">承認待ちの申請はありません。</div>';
+  if(decided.length){
+    list += '<div class="card-title" style="margin-top:16px;">処理済み</div>' + decided.map(leaveAdminItem).join('');
+  }
+  v.innerHTML = bal + list;
+}
+
+function leaveAdminItem(r){
+  var actions;
+  if(r.status==='pending'){
+    actions = '<div class="leave-actions">'
+      + '<button class="btn approve" onclick="decideLeave(\''+r.id+'\',\'approved\')">承認</button>'
+      + '<button class="btn reject" onclick="decideLeave(\''+r.id+'\',\'rejected\')">却下</button></div>';
+  } else {
+    actions = '<div class="leave-actions"><button class="btn" onclick="resetLeave(\''+r.id+'\')">承認待ちに戻す</button></div>';
+  }
+  return '<div class="leave-item">'
+    + '<div class="leave-staff">'+esc(r.staff)+'</div>'
+    + '<div class="leave-top"><div class="leave-when">'+esc(rangeLabel(r.startDate,r.endDate))+'</div><span class="st-pill '+r.status+'">'+leaveStatusLabel(r.status)+'</span></div>'
+    + '<div class="leave-meta">'+leaveMeta(r)+(r.createdAt?' ・ 申請 '+esc(r.createdAt):'')+'</div>'
+    + (r.reason?'<div class="leave-reason">'+esc(r.reason)+'</div>':'')
+    + actions + '</div>';
+}
+
+function decideLeave(id, decision){
+  google.script.run
+    .withSuccessHandler(function(res){ if(res.ok){ App.adminLeaves=res.data; toast(decision==='approved'?'承認しました':'却下しました'); renderApprove(); } else toast('処理できませんでした'); })
+    .withFailureHandler(function(){ toast('処理に失敗しました'); })
+    .decideLeave(App.pin, id, decision);
+}
+function resetLeave(id){
+  google.script.run
+    .withSuccessHandler(function(res){ if(res.ok){ App.adminLeaves=res.data; toast('承認待ちに戻しました'); renderApprove(); } })
+    .withFailureHandler(function(){ toast('失敗しました'); })
+    .resetLeave(App.pin, id);
+}
+
+// ---------- 勤怠確認 (月次) ----------
+function loadMonth(){
+  google.script.run
+    .withSuccessHandler(function(data){ App.monthData=data; App.standardMin=data.standardMin||App.standardMin; if(App.screen==='admin'&&App.admTab==='attendance') renderAttendance(); })
+    .withFailureHandler(function(){ toast('集計の取得に失敗しました'); })
+    .getMonthData(App.pin, App.monthKey);
+}
+
+function renderAttendance(){
+  var v=$('admView'); if(!v) return;
+  var head='<div class="month-nav"><div class="month-picker">'
+    + '<button class="month-arrow" onclick="changeMonth(-1)">‹</button>'
+    + '<div class="month-title">'+ymLabel(App.monthKey)+'度</div>'
+    + '<button class="month-arrow" onclick="changeMonth(1)">›</button></div>'
+    + '<div class="month-actions"><button class="btn" onclick="openAddRecord()">＋ 記録追加</button><button class="btn primary" onclick="downloadCsv()">CSV出力</button><button class="btn excel" onclick="downloadExcel()">Excel出力</button></div></div>'
+    + (App.monthData&&App.monthData.range?'<div class="month-range">対象期間：'+fmtMd(App.monthData.range.start)+' 〜 '+fmtMd(App.monthData.range.end)+'（'+(App.monthData.closingDay||25)+'日締め）</div>':'');
+  if(!App.monthData){ v.innerHTML=head+'<div class="empty-hint"><div class="spinner" style="margin:0 auto 10px;"></div>集計中…</div>'; return; }
+  v.innerHTML = head + summaryTable() + recordsTable();
+}
+
+function changeMonth(delta){ App.monthKey=shiftYM(App.monthKey,delta); App.monthData=null; renderAttendance(); loadMonth(); }
+
+function summaryTable(){
+  var d=App.monthData;
+  var rows=d.staff.map(function(s){
+    var sm=d.summary[s]||{days:0,workMin:0,overMin:0,leaveDays:0};
+    return '<tr><td class="sum-name">'+esc(s)+'</td><td>'+sm.days+'日</td><td>'+minToHHMM(sm.workMin)+'</td>'
+      + '<td'+(sm.overMin>0?' class="over-hl"':'')+'>'+minToHHMM(sm.overMin)+'</td><td>'+fmtDays(sm.leaveDays)+'日</td><td>'+fmtDays(sm.compDays||0)+'日</td></tr>';
+  }).join('');
+  if(!rows) rows='<tr><td colspan="6" class="empty-hint">スタッフがいません</td></tr>';
+  return '<div class="table-wrap"><table class="grid"><thead><tr><th>氏名</th><th>出勤日数</th><th>勤務時間</th><th>残業時間</th><th>有給</th><th>代休</th></tr></thead><tbody>'+rows+'</tbody></table></div>';
+}
+
+function recordsTable(){
+  var d=App.monthData;
+  if(!d.records.length) return '<div class="empty-hint">この月の勤怠記録はまだありません。</div>';
+  var body=d.records.map(function(r){
+    if(r.isLeave){
+      var det=(r.leaveLabel&&r.leaveLabel!=='1日')?r.leaveLabel:'';
+      if(r.endDate&&r.endDate!==r.date) det=(det?det+' ':'')+'('+mdLabel(r.date)+'〜'+mdLabel(r.endDate)+')';
+      var isComp=(r.kind==='代休');
+      return '<tr class="'+(isComp?'comp-row':'leave-row')+'">'
+        + '<td class="rec-date">'+esc(mdLabel(r.date))+'</td>'
+        + '<td class="rec-staff">'+esc(r.staff)+'</td>'
+        + '<td><span class="kubun-chip '+(isComp?'k-comp':'k-leave')+'">'+(isComp?'代休':'有給休暇')+'</span></td>'
+        + '<td><span class="st-pill leave">'+esc(det||'承認済み')+'</span></td>'
+        + '<td>—</td><td>—</td><td>—</td><td>—</td>'
+        + '<td class="rec-note-cell">'+esc(r.note||'')+'</td>'
+        + '<td></td></tr>';
+    }
+    var over=(r.worked!=null&&r.worked>d.standardMin), work=r.worked!=null?minToHHMM(r.worked):'—';
+    return '<tr>'
+      + '<td class="rec-date">'+esc(mdLabel(r.date))+'</td>'
+      + '<td class="rec-staff">'+esc(r.staff)+'</td>'
+      + '<td><span class="kubun-chip k-'+kubunClass(r)+'">'+esc(r.kubun||'出社')+'</span></td>'
+      + '<td><span class="st-pill '+r.status+'">'+statusLabel(r.status)+'</span></td>'
+      + '<td><input class="cell-input" value="'+esc(r.clockIn)+'" placeholder="--:--" onchange="editRec(\''+r.id+'\',\'ClockIn\',this.value)"></td>'
+      + '<td><input class="cell-input" value="'+esc(r.clockOut)+'" placeholder="--:--" onchange="editRec(\''+r.id+'\',\'ClockOut\',this.value)"></td>'
+      + '<td><input class="cell-input" value="'+(r.breakMin!=null?r.breakMin:60)+'" onchange="editRec(\''+r.id+'\',\'BreakMin\',this.value)"></td>'
+      + '<td'+(over?' class="over-hl"':'')+'>'+work+'</td>'
+      + '<td><input class="cell-input cell-note" value="'+esc(r.note)+'" placeholder="—" onchange="editRec(\''+r.id+'\',\'Note\',this.value)"></td>'
+      + '<td><button class="rec-del" onclick="delRec(\''+r.id+'\')">🗑</button></td></tr>';
+  }).join('');
+  return '<div class="table-wrap records-wrap"><table class="grid"><thead><tr><th>日付</th><th>氏名</th><th>区分</th><th>状態</th><th>出勤</th><th>退勤</th><th>休憩(分)</th><th>勤務時間</th><th>業務内容</th><th></th></tr></thead><tbody>'+body+'</tbody></table></div>';
+}
+
+function editRec(id,field,value){
+  google.script.run
+    .withSuccessHandler(function(res){ if(!res.ok){ toast('更新できませんでした'); return; } loadMonth(); })
+    .withFailureHandler(function(){ toast('更新に失敗しました'); })
+    .updateRecordField(App.pin, id, field, value);
+}
+function delRec(id){
+  if(!confirm('この記録を削除しますか？')) return;
+  google.script.run.withSuccessHandler(function(){ toast('削除しました'); loadMonth(); }).withFailureHandler(function(){ toast('削除に失敗しました'); }).deleteRecord(App.pin, id);
+}
+
+function openAddRecord(){
+  var opts=App.staff.map(function(s){ return '<option value="'+esc(s)+'">'+esc(s)+'</option>'; }).join('');
+  var defDate=App.monthKey+'-'+pad(new Date().getDate());
+  document.body.insertAdjacentHTML('beforeend', ''
+    + '<div class="overlay" id="recOverlay"><div class="modal"><h3>記録を追加</h3>'
+    + '<div class="field"><label>日付</label><input type="date" id="recDate" value="'+esc(defDate)+'"></div>'
+    + '<div class="field"><label>氏名</label><select id="recStaff">'+opts+'</select></div>'
+    + '<div class="modal-actions"><button class="btn" onclick="closeOverlay()">キャンセル</button><button class="btn primary" onclick="submitAddRecord()">追加</button></div>'
+    + '</div></div>');
+}
+function submitAddRecord(){
+  var date=$('recDate').value, staff=$('recStaff').value;
+  if(!date||!staff){ toast('日付と氏名を選んでください'); return; }
+  google.script.run
+    .withSuccessHandler(function(res){ closeOverlay(); toast(res.ok?'追加しました':(res.reason==='exists'?'その日の記録は既にあります':'追加できませんでした'));
+      var mk=date.slice(0,7); if(mk!==App.monthKey) App.monthKey=mk; App.monthData=null; renderAttendance(); loadMonth(); })
+    .withFailureHandler(function(){ toast('追加に失敗しました'); })
+    .addManualRecord(App.pin, date, staff);
+}
+
+function downloadCsv(){
+  toast('CSVを作成中…');
+  google.script.run
+    .withSuccessHandler(function(res){
+      var blob=new Blob([res.content],{type:'text/csv;charset=utf-8;'}), url=URL.createObjectURL(blob);
+      var a=document.createElement('a'); a.href=url; a.download=res.filename; document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      setTimeout(function(){ URL.revokeObjectURL(url); },1000); toast('CSVを出力しました');
+    })
+    .withFailureHandler(function(){ toast('CSV出力に失敗しました'); })
+    .exportMonthCsv(App.pin, App.monthKey);
+}
+
+function downloadExcel(){
+  toast('Excelを作成中…');
+  google.script.run
+    .withSuccessHandler(function(res){
+      var blob=new Blob(['﻿'+res.content],{type:'application/vnd.ms-excel;charset=utf-8;'}), url=URL.createObjectURL(blob);
+      var a=document.createElement('a'); a.href=url; a.download=res.filename; document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      setTimeout(function(){ URL.revokeObjectURL(url); },1000); toast('Excelを出力しました');
+    })
+    .withFailureHandler(function(){ toast('Excel出力に失敗しました'); })
+    .exportMonthExcel(App.pin, App.monthKey);
+}
+
+// ---------- スタッフ管理 ----------
+function loadStaffList(){
+  google.script.run
+    .withSuccessHandler(function(list){ App.staffList=list; if(App.screen==='admin'&&App.admTab==='staff') renderStaffAdmin(); })
+    .withFailureHandler(function(){ toast('取得に失敗しました'); })
+    .getStaffList(App.pin);
+}
+
+function renderStaffAdmin(){
+  var v=$('admView'); if(!v) return;
+  if(!App.staffList){ v.innerHTML='<div class="empty-hint"><div class="spinner" style="margin:0 auto 10px;"></div>読み込み中…</div>'; return; }
+  var rows=App.staffList.map(function(s){
+    return '<div class="staff-row">'
+      + '<div class="staff-row-top"><div class="nm">'+esc(s.name)+'</div>'
+      + '<button class="rm" onclick="removeStaffAdmin(\''+jstr(s.name)+'\')">外す</button></div>'
+      + '<div class="staff-row-ctrl">'
+      + '<span class="paid-edit">有給付与 <input type="number" min="0" step="0.5" value="'+s.granted+'" onchange="setPaid(\''+jstr(s.name)+'\',this.value)"> 日</span>'
+      + '<span class="paid-edit">消化 '+fmtDays(Math.round((s.granted-s.remaining)*10)/10)+' 日（残'+fmtDays(s.remaining)+'）</span>'
+      + '<label class="night-check"><input type="checkbox" '+(s.night?'checked':'')+' onchange="setNight(\''+jstr(s.name)+'\',this.checked)"> 🌙夜勤OK</label>'
+      + '<label class="multi-check"><input type="checkbox" '+(s.multi?'checked':'')+' onchange="setMulti(\''+jstr(s.name)+'\',this.checked)"> 🔁別シフトOK</label>'
+      + '</div>'
+      + '<div class="staff-row-ctrl">'
+      + '<span class="hours-edit">🕘 シフト基準時間 '
+      + '<input type="time" value="'+esc(s.dayStart||'09:00')+'" onchange="setHours(\''+jstr(s.name)+'\',this.value,null)"> 〜 '
+      + '<input type="time" value="'+esc(s.dayEnd||'18:00')+'" onchange="setHours(\''+jstr(s.name)+'\',null,this.value)"></span>'
+      + '</div></div>';
+  }).join('');
+  if(!rows) rows='<div class="empty-hint">スタッフが登録されていません。</div>';
+  v.innerHTML = rows
+    + '<div style="margin-top:14px;display:flex;justify-content:space-between;align-items:center;gap:10px;">'
+    + '<button class="link-btn" onclick="openChangePin()">🔑 パスワードを変更</button>'
+    + '<button class="btn primary" onclick="openAddStaff()">＋ スタッフを追加</button></div>';
+}
+
+function setPaid(name,val){
+  google.script.run
+    .withSuccessHandler(function(res){ if(res.ok){ toast('付与日数を更新しました'); loadStaffList(); } })
+    .withFailureHandler(function(){ toast('更新に失敗しました'); })
+    .setStaffPaid(App.pin, name, val);
+}
+
+function setUsed(name,val){
+  google.script.run
+    .withSuccessHandler(function(res){ if(res.ok){ toast('消化済み日数を更新しました'); loadStaffList(); } })
+    .withFailureHandler(function(){ toast('更新に失敗しました'); })
+    .setStaffUsed(App.pin, name, val);
+}
+
+// 夜勤OKの切り替え。App.nightStaff も更新して打刻画面に即反映
+function setNight(name,allowed){
+  if(allowed){ if(App.nightStaff.indexOf(name)<0) App.nightStaff.push(name); }
+  else { App.nightStaff=App.nightStaff.filter(function(n){return n!==name;}); }
+  google.script.run
+    .withSuccessHandler(function(res){ if(res.ok){ toast(allowed?name+' を夜勤OKにしました':name+' の夜勤をOFFにしました'); loadStaffList(); } })
+    .withFailureHandler(function(){ toast('更新に失敗しました'); })
+    .setStaffNight(App.pin, name, allowed);
+}
+
+// 別シフトOK(1日2回出勤)の切り替え
+function setMulti(name,allowed){
+  if(allowed){ if(App.multiStaff.indexOf(name)<0) App.multiStaff.push(name); }
+  else { App.multiStaff=App.multiStaff.filter(function(n){return n!==name;}); }
+  google.script.run
+    .withSuccessHandler(function(res){ if(res.ok){ toast(allowed?name+' を別シフトOKにしました':name+' の別シフトをOFFにしました'); loadStaffList(); } })
+    .withFailureHandler(function(){ toast('更新に失敗しました'); })
+    .setStaffMulti(App.pin, name, allowed);
+}
+
+function openAddStaff(){
+  document.body.insertAdjacentHTML('beforeend', ''
+    + '<div class="overlay" id="staffOverlay"><div class="modal"><h3>スタッフを追加</h3>'
+    + '<div class="field"><label>氏名</label><input type="text" id="newStaffName" placeholder="例: 山田太郎" autocomplete="off"></div>'
+    + '<div class="field"><label>有給付与日数</label><input type="number" id="newStaffPaid" min="0" step="0.5" value="10"></div>'
+    + '<div class="modal-actions"><button class="btn" onclick="closeOverlay()">キャンセル</button><button class="btn primary" onclick="submitAddStaff()">追加</button></div>'
+    + '</div></div>');
+  setTimeout(function(){ var el=$('newStaffName'); if(el) el.focus(); },60);
+}
+function submitAddStaff(){
+  var name=($('newStaffName').value||'').trim(), paid=($('newStaffPaid').value||'10');
+  if(!name){ toast('氏名を入力してください'); return; }
+  google.script.run
+    .withSuccessHandler(function(res){ closeOverlay(); if(!res.ok){ toast(res.reason==='exists'?'同じ名前が既にあります':'追加できませんでした'); return; }
+      if(App.staff.indexOf(name)===-1) App.staff.push(name); toast('追加しました'); loadStaffList(); })
+    .withFailureHandler(function(){ toast('追加に失敗しました'); })
+    .addStaff(App.pin, name, paid);
+}
+function removeStaffAdmin(name){
+  if(!confirm(name+' を一覧から外しますか？\n(過去の勤怠記録・有給履歴は残ります)')) return;
+  google.script.run
+    .withSuccessHandler(function(){ App.staff=App.staff.filter(function(s){return s!==name;}); if(App.myName===name) App.myName=App.staff[0]||null; toast('外しました'); loadStaffList(); })
+    .withFailureHandler(function(){ toast('操作に失敗しました'); })
+    .removeStaff(App.pin, name);
+}
+
+function openChangePin(){
+  document.body.insertAdjacentHTML('beforeend', ''
+    + '<div class="overlay" id="pinOverlay"><div class="modal"><h3>パスワードを変更</h3>'
+    + '<div class="field"><label>現在のパスワード</label><input type="password" id="curPin" inputmode="numeric"></div>'
+    + '<div class="field"><label>新しいパスワード（4〜8桁の数字）</label><input type="password" id="newPin" inputmode="numeric"></div>'
+    + '<div class="modal-actions"><button class="btn" onclick="closeOverlay()">キャンセル</button><button class="btn primary" onclick="submitChangePin()">変更</button></div>'
+    + '</div></div>');
+}
+function submitChangePin(){
+  var cur=$('curPin').value, np=$('newPin').value;
+  google.script.run
+    .withSuccessHandler(function(res){ if(res.ok){ App.pin=np; closeOverlay(); toast('パスワードを変更しました'); }
+      else toast(res.reason==='wrong'?'現在のパスワードが違います':'4〜8桁の数字で入力してください'); })
+    .withFailureHandler(function(){ toast('変更に失敗しました'); })
+    .changeAdminPin(cur, np);
+}
+
+// ---------- 給与計算 (勤怠と連携) ----------
+function loadPayroll(){
+  google.script.run
+    .withSuccessHandler(function(data){ App.payrollData=data; if(App.screen==='admin'&&App.admTab==='payroll') renderPayroll(); })
+    .withFailureHandler(function(){ toast('給与の取得に失敗しました'); })
+    .getPayrollData(App.pin, App.monthKey);
+}
+
+function renderPayroll(){
+  var v=$('admView'); if(!v) return;
+  var head='<div class="month-nav"><div class="month-picker">'
+    + '<button class="month-arrow" onclick="changePayMonth(-1)">‹</button>'
+    + '<div class="month-title">'+ymLabel(App.monthKey)+'度</div>'
+    + '<button class="month-arrow" onclick="changePayMonth(1)">›</button></div>'
+    + '<div class="month-actions"><button class="btn primary" onclick="downloadPayCsv()">CSV出力</button><button class="btn excel" onclick="downloadPayExcel()">Excel出力</button></div></div>'
+    + (App.payrollData&&App.payrollData.range?'<div class="month-range">対象期間：'+fmtMd(App.payrollData.range.start)+' 〜 '+fmtMd(App.payrollData.range.end)+'（'+(App.payrollData.closingDay||25)+'日締め）</div>':'');
+  if(!App.payrollData){ v.innerHTML=head+'<div class="empty-hint"><div class="spinner" style="margin:0 auto 10px;"></div>集計中…</div>'; return; }
+  var d=App.payrollData;
+  if(!d.rows.length){ v.innerHTML=head+'<div class="empty-hint">スタッフが登録されていません。</div>'; return; }
+  v.innerHTML = head
+    + '<div class="pay-hint">金額はここで直接編集できます（月ごとに保存され、次月も引き継がれます）。残業手当は勤怠の残業時間×残業単価で自動計算されます。</div>'
+    + d.rows.map(payCard).join('');
+}
+
+// 給与設定の入力欄。onchangeで保存→再計算
+function payInput(name, field, val){
+  return '<span class="pay-in-wrap"><input class="pay-input" type="number" min="0" step="1" value="'+(Number(val)||0)+'" onchange="setPay(\''+jstr(name)+'\',\''+field+'\',this.value)"><span class="yen">円</span></span>';
+}
+
+function payLine(label, valueHtml, cls){
+  return '<div class="pay-line'+(cls?' '+cls:'')+'"><span class="pl-label">'+label+'</span><span class="pl-val">'+valueHtml+'</span></div>';
+}
+
+function payCard(r){
+  var n=r.name;
+  var otLabel='残業手当 <small>'+fmtDays(r.otHours)+'h × '+payInput(n,'OvertimeUnit',r.otUnit)+'</small>';
+  return '<div class="pay-card">'
+    + '<div class="pay-head"><div class="pay-name">'+esc(n)+'</div>'
+    + '<div class="pay-net"><span class="lbl">差引支給額</span><span class="amt">'+yen(r.net)+'</span></div></div>'
+    + '<div class="pay-att">出勤 '+r.days+'日 ・ 勤務 '+minToHHMM(r.workMin)+' ・ 残業 '+minToHHMM(r.overMin)+'</div>'
+    + '<div class="pay-sec">支給</div>'
+    + payLine('基本給（月給）', payInput(n,'BaseSalary',r.base))
+    + payLine('固定残業手当', payInput(n,'FixedOvertime',r.fixedOt))
+    + payLine(otLabel, '<b>'+yen(r.otPay)+'</b>')
+    + payLine('交通費', payInput(n,'Transport',r.transport))
+    + payLine('その他手当', payInput(n,'OtherAllow',r.otherAllow))
+    + payLine('総支給', yen(r.gross), 'total')
+    + '<div class="pay-sec">控除</div>'
+    + payLine('健康保険', payInput(n,'HealthIns',r.healthIns))
+    + payLine('介護保険', payInput(n,'CareIns',r.careIns))
+    + payLine('厚生年金', payInput(n,'PensionIns',r.pensionIns))
+    + payLine('子育て支援金', payInput(n,'ChildSupport',r.childSupport))
+    + payLine('雇用保険', payInput(n,'EmpIns',r.empIns))
+    + payLine('所得税', payInput(n,'IncomeTax',r.incomeTax))
+    + payLine('住民税', payInput(n,'ResidentTax',r.residentTax))
+    + payLine('その他控除', payInput(n,'OtherDeduct',r.otherDeduct))
+    + payLine('控除計', '−'+yen(r.deduct), 'total')
+    + payLine('差引支給額（手取り）', yen(r.net), 'grand')
+    + '</div>';
+}
+
+function changePayMonth(delta){ App.monthKey=shiftYM(App.monthKey,delta); App.payrollData=null; App.monthData=null; renderPayroll(); loadPayroll(); }
+
+function setPay(name, field, value){
+  google.script.run
+    .withSuccessHandler(function(res){ if(!res.ok){ toast('保存できませんでした'); return; } loadPayroll(); })
+    .withFailureHandler(function(){ toast('保存に失敗しました'); })
+    .setPayrollField(App.pin, name, field, value);
+}
+
+function downloadPayCsv(){
+  toast('CSVを作成中…');
+  google.script.run
+    .withSuccessHandler(function(res){
+      var blob=new Blob([res.content],{type:'text/csv;charset=utf-8;'}), url=URL.createObjectURL(blob);
+      var a=document.createElement('a'); a.href=url; a.download=res.filename; document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      setTimeout(function(){ URL.revokeObjectURL(url); },1000); toast('CSVを出力しました');
+    })
+    .withFailureHandler(function(){ toast('CSV出力に失敗しました'); })
+    .exportPayrollCsv(App.pin, App.monthKey);
+}
+
+function downloadPayExcel(){
+  toast('Excelを作成中…');
+  google.script.run
+    .withSuccessHandler(function(res){
+      var blob=new Blob(['﻿'+res.content],{type:'application/vnd.ms-excel;charset=utf-8;'}), url=URL.createObjectURL(blob);
+      var a=document.createElement('a'); a.href=url; a.download=res.filename; document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      setTimeout(function(){ URL.revokeObjectURL(url); },1000); toast('Excelを出力しました');
+    })
+    .withFailureHandler(function(){ toast('Excel出力に失敗しました'); })
+    .exportPayrollExcel(App.pin, App.monthKey);
+}
+
+// ---------- シフトの基準時間 (スタッフ管理) ----------
+function setHours(name, start, end){
+  var cur=(App.staffList||[]).filter(function(s){return s.name===name;})[0]||{dayStart:'09:00',dayEnd:'18:00'};
+  var st=start||cur.dayStart, en=end||cur.dayEnd;
+  google.script.run
+    .withSuccessHandler(function(res){ if(res.ok){ toast(name+' の基準時間を更新しました'); loadStaffList(); } })
+    .withFailureHandler(function(){ toast('更新に失敗しました'); })
+    .setStaffHours(App.pin, name, st, en);
+}
+
+// ============================================================
+// シフト (従業員: 確定閲覧 + 希望入力)
+// ============================================================
+function shiftSub(t){ App.shiftSub=t; renderShift(); loadShiftSub(); }
+function changeShiftMonth(delta){ App.shiftMonth=shiftYM(App.shiftMonth,delta); App.pubShift=null; App.myShifts=null; renderShift(); loadShiftSub(); }
+
+function loadShiftSub(){ if(App.shiftSub==='table') loadPubShift(); else loadMyShifts(); }
+
+function loadPubShift(){
+  App.pubShift=null; renderShift();
+  google.script.run
+    .withSuccessHandler(function(d){ App.pubShift=d; if(App.screen==='employee'&&App.empTab==='shift') renderShift(); })
+    .withFailureHandler(function(){ toast('取得に失敗しました'); })
+    .getPublishedShift(App.shiftMonth);
+}
+
+function loadMyShifts(){
+  if(!App.myName){ App.myShifts=null; renderShift(); return; }
+  App.myShifts=null; renderShift();
+  google.script.run
+    .withSuccessHandler(function(d){ App.myShifts=d; App.shiftWish={}; d.days.forEach(function(x){ if(x.wishType) App.shiftWish[x.date]=x.wishType; }); if(App.screen==='employee'&&App.empTab==='shift') renderShift(); })
+    .withFailureHandler(function(){ toast('取得に失敗しました'); })
+    .getMyShifts(App.myName, App.shiftMonth);
+}
+
+function renderShift(){
+  var v=$('empView'); if(!v) return;
+  if(!App.staff.length){ v.innerHTML='<div class="empty-hint">スタッフが登録されていません。</div>'; return; }
+  var nav='<div class="month-nav"><div class="month-picker">'
+    +'<button class="month-arrow" onclick="changeShiftMonth(-1)">‹</button>'
+    +'<div class="month-title">'+ymLabel(App.shiftMonth)+'度</div>'
+    +'<button class="month-arrow" onclick="changeShiftMonth(1)">›</button></div></div>';
+  var rng=(App.shiftSub==='table'?App.pubShift:App.myShifts);
+  var rangeLine=(rng&&rng.range)?'<div class="month-range">対象期間：'+fmtMd(rng.range.start)+' 〜 '+fmtMd(rng.range.end)+'（'+(rng.closingDay||25)+'日締め）</div>':'';
+  var sub='<div class="segmented sub-seg">'
+    +'<button class="seg'+(App.shiftSub==='table'?' active':'')+'" onclick="shiftSub(\'table\')">確定シフト</button>'
+    +'<button class="seg'+(App.shiftSub==='wish'?' active':'')+'" onclick="shiftSub(\'wish\')">希望を出す</button>'
+    +'</div>';
+  var who='';
+  if(App.shiftSub==='wish'){
+    var opts=App.staff.map(function(s){ return '<option value="'+esc(s)+'"'+(s===App.myName?' selected':'')+'>'+esc(s)+'</option>'; }).join('');
+    who='<div class="who-label" style="margin-top:4px;">氏名</div><select class="who-select" onchange="onWishWho(this.value)">'+opts+'</select>';
+  }
+  v.innerHTML = nav + rangeLine + sub + who + (App.shiftSub==='table'?pubShiftView():wishEditorView());
+}
+
+function onWishWho(name){ App.myName=name; localStorage.setItem('kintai_my_name',name); loadMyShifts(); }
+
+function pubShiftView(){
+  var d=App.pubShift;
+  if(!d) return '<div class="empty-hint"><div class="spinner" style="margin:0 auto 10px;"></div>読み込み中…</div>';
+  if(!d.published) return '<div class="empty-hint">この月のシフトはまだ公開されていません。<br>確定までお待ちください。</div>';
+  var toggle='<div class="cal-toggle">'
+    +'<button class="cal-tg'+(App.calMode==='cal'?' active':'')+'" onclick="setCalMode(\'cal\')">📅 カレンダー</button>'
+    +'<button class="cal-tg'+(App.calMode==='list'?' active':'')+'" onclick="setCalMode(\'list\')">📋 一覧（時間つき）</button>'
+    +'</div>';
+  return toggle + (App.calMode==='cal' ? nameLegend(d)+shiftLegend()+shiftCalendar(d) : shiftPubTable(d));
+}
+function setCalMode(m){ App.calMode=m; renderShift(); }
+
+function shortType(t){ return {'早番':'早','日勤':'日','遅番':'遅','夜勤':'夜','リモート':'リ','午前休':'前','午後休':'後','休':'休','有':'有'}[t]||t; }
+function surname(n){ return String(n).split(/[\s　]/)[0]; }
+function nameInitial(n){ return surname(n).charAt(0); }
+
+// カレンダーの「名前1文字」の凡例
+function nameLegend(d){
+  return '<div class="sh-legend name-legend">'+d.staff.map(function(s){ return '<span class="lg"><b>'+esc(nameInitial(s))+'</b>＝'+esc(s)+'</span>'; }).join('')+'</div>';
+}
+
+function shiftLegend(){
+  var items=[['早番','早番'],['日勤','日勤'],['遅番','遅番'],['夜勤','夜勤'],['リモート','リモート'],['午前休','午前休'],['午後休','午後休'],['休','休'],['有','有給']];
+  return '<div class="sh-legend">'+items.map(function(x){ return '<span class="lg"><span class="sh-chip '+shiftClass(x[0])+'">'+shortType(x[0])+'</span>'+esc(x[1])+'</span>'; }).join('')+'</div>';
+}
+
+// 月間カレンダー (週×曜日のマス目)。各日のマスに担当者の色分けピルを表示
+function shiftCalendar(d){
+  if(!d.dates.length) return '<div class="empty-hint">この月の日付がありません。</div>';
+  var firstDow=new Date(d.dates[0]+'T00:00:00').getDay();
+  var head=['日','月','火','水','木','金','土'].map(function(w,i){ return '<div class="cal-h'+(i===0?' sun':i===6?' sat':'')+'">'+w+'</div>'; }).join('');
+  var cells='';
+  for(var i=0;i<firstDow;i++) cells+='<div class="cal-cell empty"></div>';
+  d.dates.forEach(function(dt){
+    var dow=new Date(dt+'T00:00:00').getDay();
+    var num=parseInt(dt.slice(8,10),10);
+    var ents='';
+    d.staff.forEach(function(s){
+      var c=d.grid[s]&&d.grid[s][dt];
+      if(!c||!c.type) return;
+      var tt=surname(s)+' '+c.type+((c.start&&c.end)?' '+c.start+'-'+c.end:'');
+      ents+='<div class="cal-ent '+shiftClass(c.type)+'" title="'+esc(tt)+'"><b>'+esc(nameInitial(s))+'</b>'+esc(shortType(c.type))+'</div>';
+    });
+    var dcls=dow===0?' sun':dow===6?' sat':'';
+    cells+='<div class="cal-cell'+dcls+'"><div class="cal-num">'+num+'</div>'+ents+'</div>';
+  });
+  return '<div class="cal">'+head+cells+'</div>';
+}
+
+function shiftPubTable(d){
+  var head='<th class="sh-date-h">日付</th>'+d.staff.map(function(s){return '<th>'+esc(s)+'</th>';}).join('');
+  var rows=d.dates.map(function(dt){
+    var cls=dayCls(dt);
+    var cells=d.staff.map(function(s){
+      var c=d.grid[s]&&d.grid[s][dt];
+      if(!c||!c.type) return '<td class="sh-cell"><span class="sh-empty">–</span></td>';
+      var tm=(c.start&&c.end)?'<span class="sh-time">'+esc(c.start)+'-'+esc(c.end)+'</span>':'';
+      return '<td class="sh-cell"><span class="sh-chip '+shiftClass(c.type)+'">'+esc(c.type)+'</span>'+tm+'</td>';
+    }).join('');
+    return '<tr'+(cls?' class="'+cls+'"':'')+'><td class="sh-date">'+esc(mdLabel(dt))+'</td>'+cells+'</tr>';
+  }).join('');
+  return '<div class="table-wrap shift-wrap"><table class="grid shift-grid"><thead><tr>'+head+'</tr></thead><tbody>'+rows+'</tbody></table></div>';
+}
+
+function wishEditorView(){
+  var d=App.myShifts;
+  if(!d) return '<div class="empty-hint"><div class="spinner" style="margin:0 auto 10px;"></div>読み込み中…</div>';
+  var lockNote = d.published ? '<div class="month-range" style="background:var(--green-soft);color:var(--green);">この月は公開済みです。変更は次回調整用として保存されます。</div>' : '';
+  var hint='<div class="pay-hint">各日の希望を選んで「希望を保存する」を押してください。空欄＝希望なし（お任せ）。管理者が確定するまで何度でも変更できます。</div>';
+  var rows=d.days.map(function(x){
+    var we=isWeekend(x.date);
+    var fixed = x.fixedType
+      ? '<span class="sh-chip '+shiftClass(x.fixedType)+'">'+esc(x.fixedType)+'</span>'+((x.start&&x.end)?' <span class="sh-time-inline">'+esc(x.start)+'-'+esc(x.end)+'</span>':'')
+      : '<span class="sh-fixed-none">未確定</span>';
+    return '<div class="wish-row'+(we?' we-'+we:'')+'">'
+      +'<div class="wish-date">'+esc(mdLabel(x.date))+'</div>'
+      +'<div class="wish-sel">'+wishSelect(x.date,x.wishType,d.canNight)+'</div>'
+      +'<div class="wish-fixed">確定 '+fixed+'</div></div>';
+  }).join('');
+  return lockNote + hint + '<div class="wish-list">'+rows+'</div>'
+    +'<button class="btn primary block" style="margin-top:14px;" onclick="saveWish()">希望を保存する</button>';
+}
+
+function wishSelect(date,cur,canNight){
+  var types=['早番','日勤','遅番','夜勤','リモート','午前休','午後休','休','有'];
+  var opts='<option value="">（希望なし）</option>';
+  types.forEach(function(t){ if(t==='夜勤'&&!canNight) return; opts+='<option value="'+t+'"'+(t===cur?' selected':'')+'>'+t+'</option>'; });
+  return '<select class="wish-select" onchange="setWish(\''+date+'\',this.value)">'+opts+'</select>';
+}
+function setWish(date,val){ if(val) App.shiftWish[date]=val; else delete App.shiftWish[date]; }
+
+function saveWish(){
+  if(!App.myName||!App.myShifts) return;
+  var map={};
+  App.myShifts.days.forEach(function(x){ map[x.date]=App.shiftWish[x.date]||''; });
+  toast('保存中…');
+  google.script.run
+    .withSuccessHandler(function(res){ if(res.ok){ App.myShifts=res.data; toast('希望を保存しました'); renderShift(); } else toast('保存できませんでした'); })
+    .withFailureHandler(function(){ toast('保存に失敗しました'); })
+    .saveMyWish(App.myName, App.shiftMonth, map);
+}
+
+// ============================================================
+// シフト (管理者: 確定・公開)
+// ============================================================
+function changeAdmShiftMonth(delta){ App.shiftMonth=shiftYM(App.shiftMonth,delta); App.admShift=null; renderAdminShift(); loadAdminShift(); }
+
+function loadAdminShift(){
+  App.admShift=null; renderAdminShift();
+  google.script.run
+    .withSuccessHandler(function(d){ App.admShift=d; if(App.screen==='admin'&&App.admTab==='shift') renderAdminShift(); })
+    .withFailureHandler(function(err){ toast('取得に失敗: '+(err&&err.message||'')); })
+    .getShiftMonth(App.pin, App.shiftMonth);
+}
+
+function renderAdminShift(){
+  var v=$('admView'); if(!v) return;
+  var d=App.admShift;
+  var pubBtn = d ? (d.published
+     ? '<button class="btn" onclick="togglePublish(false)">公開取消</button>'
+     : '<button class="btn primary" onclick="togglePublish(true)">確定して公開</button>') : '';
+  var head='<div class="month-nav"><div class="month-picker">'
+    +'<button class="month-arrow" onclick="changeAdmShiftMonth(-1)">‹</button>'
+    +'<div class="month-title">'+ymLabel(App.shiftMonth)+'度</div>'
+    +'<button class="month-arrow" onclick="changeAdmShiftMonth(1)">›</button></div>'
+    +'<div class="month-actions"><button class="btn" onclick="applyWishes()">希望を反映</button>'+pubBtn+'<button class="btn excel" onclick="downloadShiftExcel()">Excel出力</button></div></div>'
+    +((d&&d.range)?'<div class="month-range">対象期間：'+fmtMd(d.range.start)+' 〜 '+fmtMd(d.range.end)+'（'+(d.closingDay||25)+'日締め）</div>':'');
+  if(!d){ v.innerHTML=head+'<div class="empty-hint"><div class="spinner" style="margin:0 auto 10px;"></div>読み込み中…</div>'; return; }
+  var status = d.published
+    ? '<div class="month-range" style="background:var(--green-soft);color:var(--green);">✓ 公開中（スタッフが閲覧できます）</div>'
+    : '<div class="month-range">未公開（下書き）</div>';
+  v.innerHTML = head + status
+    + '<div class="pay-hint">セルで確定シフトを選びます。時間は各自の基準（スタッフ画面で設定）から自動で入ります。うすい文字＝本人の希望。「希望を反映」で未確定のマスに希望を一括コピーできます。</div>'
+    + admShiftTable(d);
+}
+
+function admShiftTable(d){
+  var head='<th class="sh-date-h">日付</th>'+d.staff.map(function(s){return '<th>'+esc(s)+'</th>';}).join('');
+  var rows=d.dates.map(function(dt){
+    var cls=dayCls(dt);
+    var cells=d.staff.map(function(s){
+      var c=d.grid[s][dt]||{wishType:'',fixedType:''};
+      var canNight=d.nightStaff.indexOf(s)>=0;
+      var wish=c.wishType?'<div class="adm-wish">希望:'+esc(c.wishType)+'</div>':'<div class="adm-wish none">&nbsp;</div>';
+      return '<td class="adm-cell '+shiftClass(c.fixedType)+'">'+admFixSelect(dt,s,c.fixedType,canNight)+wish+'</td>';
+    }).join('');
+    return '<tr'+(cls?' class="'+cls+'"':'')+'><td class="sh-date">'+esc(mdLabel(dt))+'</td>'+cells+'</tr>';
+  }).join('');
+  var foot='<td class="sh-date">出勤日数</td>'+d.staff.map(function(s){
+    var sum=0; d.dates.forEach(function(dt){ var c=d.grid[s][dt]; if(c) sum+=shiftWeightJs(c.fixedType); });
+    return '<td class="adm-total">'+(Math.round(sum*10)/10)+'日</td>';
+  }).join('');
+  return '<div class="table-wrap shift-wrap"><table class="grid shift-grid adm-shift"><thead><tr>'+head+'</tr></thead><tbody>'+rows+'<tr class="foot-row">'+foot+'</tr></tbody></table></div>';
+}
+
+function admFixSelect(date,staff,cur,canNight){
+  var types=['早番','日勤','遅番','夜勤','リモート','午前休','午後休','休','有'];
+  var opts='<option value="">–</option>';
+  types.forEach(function(t){ if(t==='夜勤'&&!canNight) return; opts+='<option value="'+t+'"'+(t===cur?' selected':'')+'>'+t+'</option>'; });
+  return '<select class="adm-sel" onchange="setFixed(\''+date+'\',\''+jstr(staff)+'\',this.value)">'+opts+'</select>';
+}
+
+function shiftWeightJs(type){ if(['早番','日勤','遅番','夜勤','リモート'].indexOf(type)>=0) return 1; if(['午前休','午後休'].indexOf(type)>=0) return 0.5; return 0; }
+
+function setFixed(date,staff,type){
+  if(App.admShift&&App.admShift.grid[staff]&&App.admShift.grid[staff][date]) App.admShift.grid[staff][date].fixedType=type;
+  google.script.run
+    .withSuccessHandler(function(res){ if(!res.ok) toast('保存できませんでした'); })
+    .withFailureHandler(function(){ toast('保存に失敗しました'); })
+    .setFixedShift(App.pin, App.shiftMonth, date, staff, type);
+}
+
+function applyWishes(){
+  if(!confirm('未確定のマスに、本人の希望をそのまま確定として入れます。よろしいですか？')) return;
+  toast('反映中…');
+  google.script.run
+    .withSuccessHandler(function(res){ if(res.ok){ App.admShift=res.data; toast('希望を反映しました'); renderAdminShift(); } })
+    .withFailureHandler(function(){ toast('反映に失敗しました'); })
+    .applyWishesToFixed(App.pin, App.shiftMonth);
+}
+
+function togglePublish(pub){
+  if(pub && !confirm('この月のシフトを確定して公開します。スタッフが閲覧できるようになります。よろしいですか？')) return;
+  google.script.run
+    .withSuccessHandler(function(res){ if(res.ok){ if(App.admShift) App.admShift.published=res.published; toast(res.published?'公開しました':'公開を取り消しました'); renderAdminShift(); } })
+    .withFailureHandler(function(){ toast('操作に失敗しました'); })
+    .publishShiftMonth(App.pin, App.shiftMonth, pub);
+}
+
+function downloadShiftExcel(){
+  toast('Excelを作成中…');
+  google.script.run
+    .withSuccessHandler(function(res){
+      var blob=new Blob(['﻿'+res.content],{type:'application/vnd.ms-excel;charset=utf-8;'}), url=URL.createObjectURL(blob);
+      var a=document.createElement('a'); a.href=url; a.download=res.filename; document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      setTimeout(function(){ URL.revokeObjectURL(url); },1000); toast('Excelを出力しました');
+    })
+    .withFailureHandler(function(){ toast('Excel出力に失敗しました'); })
+    .exportShiftExcel(App.pin, App.shiftMonth);
+}
+
+// ---------- 共通 ----------
+function closeOverlay(){ ['recOverlay','staffOverlay','pinOverlay'].forEach(function(id){ var el=$(id); if(el) el.remove(); }); }
+</script>
+
+<script>
+// ============================================================
+// 勤怠管理 高速版: 画面側の調整 (javascript.html のあとに読む)
+//   打刻ボタンは待たずに押せる。押した瞬間に画面を切り替え、保存は裏で行う。
+//   二重打刻は Google 側 (api.gs の punchInChecked) で止める。
+//   保存に失敗したら画面を元に戻し、消えないお知らせを出す。
+// ============================================================
+(function(){
+  var basePunchActions = punchActions;
+  var readSeq = 0;       // 打刻のたびに進める。打刻前に出した確認の返事を無視するため
+  App.punchErr = '';
+
+  function nowHHMM(){ var d=new Date(); return pad(d.getHours())+':'+pad(d.getMinutes()); }
+  function yesterdayOf(day){ var d=new Date(day+'T00:00:00'); d.setDate(d.getDate()-1); return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate()); }
+
+  // 入力中の業務内容を消さずに打刻画面を描き直す
+  function redrawPunch(){
+    if(App.screen!=='employee'||App.empTab!=='punch') return;
+    var ta=$('workNote'), typed=ta?ta.value:null;
+    renderPunch();
+    var next=$('workNote');
+    if(next && typed!==null && typed!=='') next.value=typed;
+  }
+
+  window.punchActions = function(status, rec){
+    return (App.punchErr?'<div class="punch-error">'+esc(App.punchErr)+'</div>':'')
+      + basePunchActions(status, rec)
+      + (App.loadingPunch?'<div class="punch-saving">保存しています…</div>':'');
+  };
+
+  window.loadTodayRecord = function(){
+    if(!App.myName) return;
+    var name=App.myName, seq=readSeq;
+    var c=KINTAI_FAST.readRec(name);
+    // 今日の記録、または前日からの夜勤で未退勤の記録なら、すぐ表示する
+    var usable = c && (c.day===App.today || (c.day===yesterdayOf(App.today) && c.rec && c.rec.status==='working'));
+    if(!App.loadingPunch) App.todayRecord = usable ? c.rec : null;
+    redrawPunch();
+    google.script.run
+      .withSuccessHandler(function(rec){
+        if(App.myName!==name || seq!==readSeq || App.loadingPunch) return;
+        App.todayRecord=rec;
+        redrawPunch();
+      })
+      .withFailureHandler(function(){})   // 確認できなくても打刻はできる。打刻の失敗は別に知らせる
+      .getActiveRecord(name);
+  };
+
+  function failPunch(prev, msg){
+    App.loadingPunch=false; App.todayRecord=prev; App.punchErr=msg;
+    redrawPunch();
+  }
+
+  window.doPunchIn = function(workType){
+    if(App.loadingPunch||!App.myName) return;
+    var prev=App.todayRecord, seen=prev?prev.status:'off', wasRe=App.rePunch;
+    readSeq++; App.punchErr=''; App.loadingPunch=true; App.rePunch=false;
+    App.todayRecord={status:'working',clockIn:nowHHMM(),clockOut:'',workType:workType,kubun:workType,breakMin:(prev&&prev.status==='working')?prev.breakMin:60,note:'',worked:null};
+    redrawPunch();
+    google.script.run
+      .withSuccessHandler(function(rec){
+        App.loadingPunch=false; App.todayRecord=rec;
+        redrawPunch();
+        if(seen==='off' && rec && rec.status==='done') toast('本日はすでに退勤済みです');
+        else toast(workType==='出社'?'出勤しました':workType+'で出勤しました');
+      })
+      .withFailureHandler(function(){ App.rePunch=wasRe; failPunch(prev,'出勤を保存できませんでした。電波を確認して、もう一度押してください。'); })
+      .punchInChecked(App.myName, workType, seen);
+  };
+
+  window.doPunchOut = function(){
+    if(App.loadingPunch||!App.myName) return;
+    var note=($('workNote')&&$('workNote').value)||'';
+    var prev=App.todayRecord;
+    readSeq++; App.punchErr=''; App.loadingPunch=true;
+    var opt={}; Object.keys(prev||{}).forEach(function(k){ opt[k]=prev[k]; });
+    opt.status='done'; opt.clockOut=nowHHMM(); opt.note=note; opt.worked=null;
+    App.todayRecord=opt;
+    redrawPunch();
+    google.script.run
+      .withSuccessHandler(function(rec){
+        App.loadingPunch=false; App.rePunch=false; App.todayRecord=rec;
+        redrawPunch();
+        toast('退勤しました。お疲れさまでした');
+      })
+      .withFailureHandler(function(){ failPunch(prev,'退勤を保存できませんでした。電波を確認して、もう一度押してください。'); })
+      .punchOut(App.myName, note);
+  };
+
+  // 前回の名簿で画面を出したあと、Google の日付・名簿で確かめ直す
+  window.addEventListener('DOMContentLoaded', function(){
+    setTimeout(function(){
+      if(App.today) KINTAI_FAST.setToday(App.today);
+      if(KINTAI_FAST.usedInitCache()) syncDate(true);
+    }, 0);
+  });
+
+  // ---------- 承認待ちのお知らせ (社長・中野の端末だけ) ----------
+  var ADMIN_STAFF = '中野　聖子';      // 社長は ?me 無しで開くので、それ以外の管理者をここに書く
+  var PENDING_KEY = 'kintai_fast_pending';
+  var POLL_MS = (window.KINTAI_POLL_MS||60000);
+  var fixedMe = ''; try{ fixedMe=new URLSearchParams(location.search).get('me')||''; }catch(e){}
+  var isAdminDevice = (!fixedMe || fixedMe===ADMIN_STAFF);
+  var pendingNow = null;
+
+  function tellHub(n){
+    if(window.parent!==window) window.parent.postMessage({type:'kintai-pending',count:n}, location.origin);
+    else if(navigator.setAppBadge){ try{ (n>0?navigator.setAppBadge(n):navigator.clearAppBadge()).catch(function(){}); }catch(e){} }
+  }
+
+  function decorateHome(n){
+    var list=document.querySelector('.home .mode-list'); if(!list) return;
+    var old=document.querySelector('.pending-alert'); if(old) old.remove();
+    var cards=list.querySelectorAll('.mode-card'), adm=cards[1];
+    var badge=adm&&adm.querySelector('.pending-num'); if(badge) badge.remove();
+    if(!(n>0)) return;
+    var a=document.createElement('button');
+    a.className='pending-alert'; a.textContent='🔔 承認待ちの申請が '+n+' 件あります';
+    a.onclick=enterAdmin;
+    list.parentNode.insertBefore(a,list);
+    if(adm){ var b=document.createElement('span'); b.className='pending-num'; b.textContent=n; adm.appendChild(b); }
+  }
+
+  function applyPending(n, fromServer){
+    var before=pendingNow;
+    pendingNow=n; App.pendingCount=n;
+    if(App.screen==='home') decorateHome(n);
+    tellHub(n);
+    if(!fromServer) return;
+    try{ localStorage.setItem(PENDING_KEY,String(n)); }catch(e){}
+    if(before!==null && n>before){
+      toast('🔔 新しい申請が届きました（承認待ち '+n+' 件）');
+      if(App.screen==='admin'&&App.pin&&App.admTab==='approve') loadAdminLeaves(false);
+    }
+  }
+
+  function pollPending(){
+    if(!isAdminDevice||document.hidden) return;
+    google.script.run.withSuccessHandler(function(n){ applyPending(Number(n)||0,true); }).withFailureHandler(function(){}).getPendingCount();
+  }
+
+  if(isAdminDevice){
+    var baseRenderHome=renderHome, baseGoHome=goHome;
+    window.renderHome=function(){ baseRenderHome(); if(pendingNow!==null) decorateHome(pendingNow); };
+    window.goHome=function(){ baseGoHome(); pollPending(); };   // 承認のあと、件数を取り直す
+    window.addEventListener('DOMContentLoaded', function(){
+      var saved=null; try{ saved=localStorage.getItem(PENDING_KEY); }catch(e){}
+      setTimeout(function(){
+        if(saved!==null) applyPending(Number(saved)||0,false);   // 前回の件数をすぐ出し、すぐ最新に直す
+        pollPending();
+      },0);
+      setInterval(pollPending, POLL_MS);
+    });
+    document.addEventListener('visibilitychange', function(){ if(!document.hidden) pollPending(); });
+  }
+
+  // ---------- 管理者モードをすぐ開く ----------
+  // 押した瞬間に画面を切り替え、確認と読み込みは同時に行う。
+  // データは暗証番号が正しいと確認できたものしか届かない。
+  function backToPinGate(msg){
+    App.pin=null; App.adminLeaves=null; App.monthData=null; App.payrollData=null; App.staffList=null;
+    if(App.screen==='admin') render();
+    toast(msg);
+  }
+
+  window.submitPin = function(){
+    var pin=($('pinInput')&&$('pinInput').value||'').trim();
+    if(!pin){ toast('暗証番号を入力してください'); return; }
+    App.pin=pin; App.admTab='approve'; App.adminLeaves=null;
+    render();
+    google.script.run
+      .withSuccessHandler(function(res){
+        if(App.pin!==pin) return;
+        if(!res.ok){ backToPinGate('暗証番号が違います'); return; }
+        App.adminLeaves=res.data;
+        App.pendingCount=res.data.requests.filter(function(r){ return r.status==='pending'; }).length;
+        if(App.pendingCount>0) toast('承認待ちの申請が '+App.pendingCount+' 件あります');
+        if(App.screen==='admin') renderAdmin();
+      })
+      .withFailureHandler(function(){ if(App.pin===pin) backToPinGate('通信に失敗しました。もう一度開いてください'); })
+      .adminOpen(pin);
+    // 他のタブも同時に読み込む (番号が違えば Google 側で拒否され、何も届かない)
+    google.script.run.withSuccessHandler(function(d){ if(App.pin!==pin) return; App.monthData=d; App.standardMin=d.standardMin||App.standardMin; if(App.screen==='admin'&&App.admTab==='attendance') renderAttendance(); }).withFailureHandler(function(){}).getMonthData(pin, App.monthKey);
+    google.script.run.withSuccessHandler(function(d){ if(App.pin!==pin) return; App.payrollData=d; if(App.screen==='admin'&&App.admTab==='payroll') renderPayroll(); }).withFailureHandler(function(){}).getPayrollData(pin, App.monthKey);
+    google.script.run.withSuccessHandler(function(d){ if(App.pin!==pin) return; App.staffList=d; if(App.screen==='admin'&&App.admTab==='staff') renderStaffAdmin(); }).withFailureHandler(function(){}).getStaffList(pin);
+  };
+})();
+
+</script>
+</body>
+</html>

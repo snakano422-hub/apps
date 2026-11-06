@@ -191,7 +191,7 @@
    kw  : さがす時に引っかける言葉（言い換えも入れる）
    ===================================================================== */
 var URL_PORTAL = "https://script.google.com/macros/s/AKfycbyUnlcIJSoidvlUmw8hEOi19E4zqabsa6P0uzcr1s7RKZy5-0E9noArEsoTTHi2HTAh/exec";
-var URL_KINTAI = "https://script.google.com/macros/s/AKfycbwfy78QKZg9WQZsa_EvxOLM5Xvc3QcVG3GaWUlz1Vuhts3t1AOzUfe8y-14hH4n0LnIow/exec";
+var URL_KINTAI = "kintai_app.html";
 
 var IMG = { calendar:"", kintai:"kintai.png", gyomu:"gyomu.png", meishi:"meishi.png", anzen:"anzen.png", portal:"portal.png", memo:"memo.png", guide:"guide.png" };
 
@@ -199,8 +199,8 @@ var IMG = { calendar:"", kintai:"kintai.png", gyomu:"gyomu.png", meishi:"meishi.
 var DAILY = [
   /* 勤怠管理：みんな慣れているので、入口からは「いつもの画面をそのまま開く」だけ（中の機能は分けない）*/
   { id:"kintai",  who:"all", app:"kintai", do:"勤怠管理",
-    pathBy:{ all:"出勤・退勤・有給申請", boss:"有給の承認・勤怠の確認", me:"打刻・有給申請・有給の承認" },
-    kw:"勤怠 出勤 退勤 打刻 出社 帰る 休憩 タイムカード 有給 有休 年休 休み 休暇 休む 半休 申請 承認 勤務時間 残業" },
+    pathBy:{ all:"出勤・退勤・有給/代休の申請", boss:"有給/代休の承認・勤怠の確認", me:"打刻・有給/代休の申請と承認" },
+    kw:"勤怠 出勤 退勤 打刻 出社 帰る 休憩 タイムカード 有給 有休 代休 振休 振替休日 年休 休み 休暇 休む 半休 申請 承認 勤務時間 残業" },
   /* 予定：各自のGoogleカレンダーを1画面にまとめたアプリ（2026-10-09 本番公開） */
   { id:"calendar", who:"all", ico:"📅", color:"#1a73e8", do:"予定", path:"みんなの予定を見る・入れる",
     url:"https://script.google.com/macros/s/AKfycbyX0YoTkRiNn8Hwr73K_9K3Ax3lqfhiGXHwyfOeFDGpJRKN2KHFQkpoY5porWbZzKAYqA/exec", kw:"予定 カレンダー スケジュール 日程 訪問 打ち合わせ 会議 休日 いつ" },
@@ -318,7 +318,7 @@ function go(url, title){
     f.shown = true;
     ld.classList.remove("hidden");
     var hideLoad = function(){ if (active === f) ld.classList.add("hidden"); };   // いま表示中のアプリの時だけ消す（別アプリに切り替えた後は消さない）
-    if (f.loaded) setTimeout(hideLoad, 800);          // 先読み済み：中身が描画される一瞬だけ重ねて白画面を防ぐ
+    if (f.loaded) hideLoad();          // 先読み済み：中身が描画される一瞬だけ重ねて白画面を防ぐ
     else f.el.addEventListener("load", hideLoad, { once:true });   // 未読込：読み込み完了で消す
   }
   document.getElementById("viewer").classList.remove("hidden");
@@ -331,8 +331,17 @@ function closeViewer(){
 document.getElementById("vBack").onclick = function(){ if (history.state && history.state.app) history.back(); else closeViewer(); };
 window.addEventListener("popstate", function(){ if (!document.getElementById("viewer").classList.contains("hidden")) closeViewer(); });
 /* よく使う「勤怠」だけ、入口を開いた少しあとに裏で先読み（タップで一瞬に）。予定ほかは押した時だけ読み込む。*/
+/* 勤怠から届く「承認待ち件数」を、勤怠ボタンの赤い印とアプリのアイコンに出す（社長・中野だけ） */
+window.addEventListener("message", function(e){
+  if (e.origin !== location.origin || !e.data || e.data.type !== "kintai-pending") return;
+  if (ROLE !== "boss" && ROLE !== "me") return;
+  var n = Number(e.data.count) || 0;
+  find("kintai").badge = n > 0 ? "承認待ち " + n + "件" : "";
+  render();
+  if (navigator.setAppBadge){ try{ (n > 0 ? navigator.setAppBadge(n) : navigator.clearAppBadge()).catch(function(){}); }catch(err){} }
+});
 function preloadKintai(){ frame(kintaiUrl(), false); }
-setTimeout(preloadKintai, 1200);
+setTimeout(preloadKintai, 300);
 document.addEventListener("click", function(e){
   var el = e.target.closest("[data-id]"); if (!el) return;
   if (el.closest("#todo")) store("bf_thanks", String(Date.now()));   // 用事をすませて戻ったら「ありがとう」
