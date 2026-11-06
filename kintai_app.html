@@ -383,7 +383,7 @@
     table.grid{font-size:14.5px;}
   }
 </style>
-<style>.pending-alert{display:block;width:100%;max-width:420px;margin:0 auto 14px;padding:14px 16px;border:0;border-radius:16px;background:#c0492f;color:#fff;font-size:16px;font-weight:800;font-family:inherit;cursor:pointer}.mode-card{position:relative}.pending-num{position:absolute;top:10px;right:12px;min-width:26px;height:26px;padding:0 7px;box-sizing:border-box;border-radius:13px;background:#c0492f;color:#fff;font-size:15px;font-weight:800;line-height:26px;text-align:center}.punch-saving{text-align:center;color:#7a8699;font-size:14px;margin-top:10px}.punch-error{background:#fbeae6;color:#c0492f;border:1px solid #e9b8ab;border-radius:12px;padding:12px 14px;margin-bottom:12px;font-weight:700;font-size:15px}</style>
+<style>.st-pill.saving{color:#7a8699;background:#e6eaf2}.pending-alert{display:block;width:100%;max-width:420px;margin:0 auto 14px;padding:14px 16px;border:0;border-radius:16px;background:#c0492f;color:#fff;font-size:16px;font-weight:800;font-family:inherit;cursor:pointer}.mode-card{position:relative}.pending-num{position:absolute;top:10px;right:12px;min-width:26px;height:26px;padding:0 7px;box-sizing:border-box;border-radius:13px;background:#c0492f;color:#fff;font-size:15px;font-weight:800;line-height:26px;text-align:center}.punch-saving{text-align:center;color:#7a8699;font-size:14px;margin-top:10px}.punch-error{background:#fbeae6;color:#c0492f;border:1px solid #e9b8ab;border-radius:12px;padding:12px 14px;margin-bottom:12px;font-weight:700;font-size:15px}</style>
 </head>
 <body>
 <div id="root"><div class="loading-screen"><div class="spinner"></div>読み込み中…</div></div>
@@ -414,7 +414,7 @@
       method:'POST', redirect:'follow',
       headers:{'Content-Type':'text/plain;charset=utf-8'},   // text/plain にして事前確認(CORS)を避ける
       body:JSON.stringify({fn:fn, args:args}),
-      keepalive: fn==='punchInChecked'||fn==='punchOut',
+      keepalive: fn==='punchInChecked'||fn==='punchOut'||fn==='submitLeave'||fn==='submitCompLeave',
       signal: ctrl ? ctrl.signal : undefined
     }).then(function(r){
       if(timer) clearTimeout(timer);
@@ -1874,6 +1874,65 @@ function closeOverlay(){ ['recOverlay','staffOverlay','pinOverlay'].forEach(func
     google.script.run.withSuccessHandler(function(d){ if(App.pin!==pin) return; App.monthData=d; App.standardMin=d.standardMin||App.standardMin; if(App.screen==='admin'&&App.admTab==='attendance') renderAttendance(); }).withFailureHandler(function(){}).getMonthData(pin, App.monthKey);
     google.script.run.withSuccessHandler(function(d){ if(App.pin!==pin) return; App.payrollData=d; if(App.screen==='admin'&&App.admTab==='payroll') renderPayroll(); }).withFailureHandler(function(){}).getPayrollData(pin, App.monthKey);
     google.script.run.withSuccessHandler(function(d){ if(App.pin!==pin) return; App.staffList=d; if(App.screen==='admin'&&App.admTab==='staff') renderStaffAdmin(); }).withFailureHandler(function(){}).getStaffList(pin);
+  };
+
+  // ---------- 有給・代休の申請をすぐ画面に出す ----------
+  // 押した瞬間に履歴へ「保存しています…」で出し、送信は裏で行う。
+  // 送信中はもう一度押せない (二重申請の防止)。失敗したら入力を戻して知らせる。
+  var baseStatusLabel = leaveStatusLabel;
+  var leaveSaving = false;
+  window.leaveStatusLabel = function(s){ return s==='saving' ? '保存しています…' : baseStatusLabel(s); };
+
+  function estimateDays(start, end, type){
+    if(type==='am'||type==='pm') return 0.5;
+    var d=new Date(start+'T00:00:00'), e=new Date(end+'T00:00:00'), n=0;
+    if(e<d) e=d;
+    while(d<=e){ var w=d.getDay(); if(w!==0&&w!==6) n++; d.setDate(d.getDate()+1); }
+    return n||1;
+  }
+  function redrawLeave(){ if(App.screen==='employee'&&App.empTab==='leave') renderLeave(); }
+
+  window.submitLeave = function(){
+    if(leaveSaving) return;
+    var start=$('lvStart').value;
+    if(!start){ toast('日付を選んでください'); return; }
+    var type=App.leaveType, isHalf=(type==='am'||type==='pm');
+    var end=isHalf?start:(($('lvEnd')&&$('lvEnd').value)||start);
+    var reason=($('lvReason')&&$('lvReason').value)||'';
+    var isComp=(App.leaveKind==='comp');
+    var worked=($('lvWorked')&&$('lvWorked').value)||'';
+    if(isComp&&!worked){ toast('休日出勤した日を選んでください'); return; }
+
+    var kindName=isComp?'代休':'有給', prev=App.leaveInfo, who=App.myName;
+    function restoreForm(msg){
+      leaveSaving=false; App.leaveInfo=prev; redrawLeave();
+      if($('lvStart')) $('lvStart').value=start;
+      if($('lvEnd')) $('lvEnd').value=end;
+      if($('lvReason')) $('lvReason').value=reason;
+      if($('lvWorked')) $('lvWorked').value=worked;
+      alert(msg);
+    }
+    leaveSaving=true;
+    if(prev){
+      var shown={}; Object.keys(prev).forEach(function(k){ shown[k]=prev[k]; });
+      shown.requests=[{ id:'saving', staff:who, startDate:start, endDate:end, type:type,
+        typeLabel:{full:'1日',am:'午前半休',pm:'午後半休'}[type]||'1日', days:estimateDays(start,end,type),
+        reason:reason, status:'saving', kind:isComp?'代休':'', workedDate:worked }].concat(prev.requests);
+      App.leaveInfo=shown;
+    }
+    redrawLeave();
+    toast(kindName+'の申請を送っています…');
+    var run=google.script.run
+      .withSuccessHandler(function(res){
+        if(!res.ok){ restoreForm('申請できませんでした。内容を確認して、もう一度押してください。'); return; }
+        leaveSaving=false;
+        if(App.myName===who) App.leaveInfo=res.info;
+        redrawLeave();
+        toast(kindName+'を申請しました');
+      })
+      .withFailureHandler(function(){ restoreForm(kindName+'の申請を送れませんでした。電波を確認して、もう一度押してください。'); });
+    if(isComp) run.submitCompLeave(who, start, end, type, reason, worked);
+    else run.submitLeave(who, start, end, type, reason);
   };
 })();
 
