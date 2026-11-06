@@ -43,6 +43,7 @@
   .day.sun .dn,.day.hol .dn{color:var(--sun);} .day.sat .dn{color:var(--sat);}
   .day.today .dn{background:var(--navy);color:#fff;}
   .hname{font-size:9.5px;color:var(--sun);margin-left:2px;}
+  .hname.gyoji{color:var(--muted);}
   .ev{display:block;font-size:11px;line-height:1.35;border-radius:5px;padding:1px 4px;margin-top:2px;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
   .more{font-size:10.5px;color:var(--muted);margin-top:1px;}
 
@@ -50,6 +51,7 @@
   .dayttl{display:flex;align-items:center;gap:8px;margin:18px 2px 8px;}
   .dayttl h2{font-size:17px;margin:0;}
   .dayttl .hol{font-size:12px;color:var(--sun);font-weight:700;}
+  .dayttl .hol.gyoji{color:var(--muted);font-weight:400;}
   .addday{margin-left:auto;background:var(--navy);color:#fff;border:0;border-radius:10px;padding:8px 12px;font-size:14px;font-weight:800;cursor:pointer;}
   .list{display:flex;flex-direction:column;gap:8px;}
   .item{display:flex;gap:10px;background:#fff;border:1px solid var(--line);border-left:6px solid #999;border-radius:12px;padding:10px 12px;cursor:pointer;}
@@ -275,6 +277,10 @@ function shown(){ return S.events.filter(function(e){ return !S.hidden[e.person]
 function onDay(d){ return shown().filter(function(e){ return e.date<=d && d<=e.endDate; })
   .sort(function(a,b){ return (a.allDay?"":"1"+a.start).localeCompare(b.allDay?"":"1"+b.start); }); }
 
+/* Googleの一覧には祝日でない行事(クリスマス等)も入るので、法律上の祝日と休日だけ赤にする */
+var HOL_NAMES=/元日|成人の日|建国記念の日|天皇誕生日|春分の日|昭和の日|憲法記念日|みどりの日|こどもの日|海の日|山の日|敬老の日|秋分の日|スポーツの日|文化の日|勤労感謝の日|休日/;
+function isHol(k){ return HOL_NAMES.test(S.holidays[k]||""); }
+
 /* ---------- 月 ---------- */
 function renderCal(){
   document.getElementById("ym").textContent = S.y+"年"+(S.m+1)+"月";
@@ -283,8 +289,8 @@ function renderCal(){
     var k=ymd(d), evs=onDay(k), cls="day";
     if (d.getMonth()!==S.m) cls+=" out";
     if (d.getDay()===0) cls+=" sun"; if (d.getDay()===6) cls+=" sat";
-    if (S.holidays[k]) cls+=" hol"; if (k===today) cls+=" today"; if (k===S.sel) cls+=" sel";
-    h+='<div class="'+cls+'" data-d="'+k+'"><span class="dn">'+d.getDate()+'</span>'+(S.holidays[k]?'<span class="hname">'+esc(S.holidays[k])+'</span>':'');
+    if (isHol(k)) cls+=" hol"; if (k===today) cls+=" today"; if (k===S.sel) cls+=" sel";
+    h+='<div class="'+cls+'" data-d="'+k+'"><span class="dn">'+d.getDate()+'</span>'+(S.holidays[k]?'<span class="hname'+(isHol(k)?'':' gyoji')+'">'+esc(S.holidays[k])+'</span>':'');
     evs.slice(0,3).forEach(function(e){ h+='<span class="ev" style="background:'+P(e.person).color+';color:'+fg(P(e.person).color)+'">'+(e.person==="shared"?"👥 ":"")+(e.allDay?"":e.start+" ")+esc(e.title)+'</span>'; });
     if (evs.length>3) h+='<div class="more">ほか'+(evs.length-3)+'件</div>';
     h+='</div>'; d.setDate(d.getDate()+1);
@@ -305,7 +311,7 @@ document.getElementById("todayBtn").onclick=function(){ var t=new Date(); S.y=t.
 function renderDay(){
   var d=new Date(S.sel.replace(/-/g,"/"));
   document.getElementById("dayTitle").textContent=(d.getMonth()+1)+"月"+d.getDate()+"日（"+"日月火水木金土".charAt(d.getDay())+"）の予定";
-  document.getElementById("dayHol").textContent=S.holidays[S.sel]||"";
+  var dh=document.getElementById("dayHol"); dh.textContent=S.holidays[S.sel]||""; dh.className=isHol(S.sel)?"hol":"hol gyoji";
   var evs=onDay(S.sel);
   document.getElementById("list").innerHTML = evs.length ? evs.map(function(e){
     var p=P(e.person);
